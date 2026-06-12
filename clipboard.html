@@ -1,0 +1,1438 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>QuickCopy</title>
+<meta name="application-name" content="QuickCopy"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-title" content="QuickCopy"/>
+<meta name="theme-color" content="#0a0f1e"/>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="icon-192.png"/>
+<link rel="icon" type="image/png" href="icon-192.png"/>
+<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300;700;800;900&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg      : #0a0f1e;
+  --bg2     : #0f1628;
+  --surface : #141d35;
+  --card    : #1a2440;
+  --card-h  : #1f2b4a;
+  --border  : rgba(100,160,255,0.12);
+  --border-h: rgba(100,160,255,0.35);
+  --accent  : #4d8fff;
+  --accent2 : #7eb8ff;
+  --glow    : rgba(77,143,255,0.15);
+  --dim     : rgba(77,143,255,0.08);
+  --danger  : #ff5e72;
+  --success : #4dffa6;
+  --warn    : #ffd166;
+  --text    : #e8f0ff;
+  --text2   : #8fa8d0;
+  --muted   : #445878;
+  --fd      : 'Raleway',sans-serif;
+  --fb      : 'Outfit',sans-serif;
+  --fh      : 'Raleway',sans-serif;
+  --r       : 14px;
+  --rs      : 9px;
+  --tr      : 0.2s cubic-bezier(0.4,0,0.2,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{height:100%}
+body{
+  font-family:var(--fb);background:var(--bg);color:var(--text);
+  min-height:100vh;display:flex;flex-direction:column;
+  background-image:
+    radial-gradient(ellipse 80% 40% at 50% -5%,rgba(77,143,255,0.1) 0%,transparent 65%),
+    linear-gradient(rgba(100,160,255,0.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(100,160,255,0.025) 1px,transparent 1px);
+  background-size:100% 100%,40px 40px,40px 40px;
+}
+
+/* ── 스플래시 ── */
+#splash {
+  position: fixed; inset: 0; z-index: 9999;
+  background: #05080f;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  overflow: hidden;
+  transition: opacity .8s ease, visibility .8s ease;
+}
+#splash.hide { opacity: 0; visibility: hidden; }
+
+/* 배경 빛줄기 */
+.sp-rays {
+  position: absolute; inset: 0; overflow: hidden; pointer-events: none;
+}
+.sp-ray {
+  position: absolute; bottom: 0; left: 50%;
+  width: 1px; height: 60%;
+  transform-origin: bottom center;
+  background: linear-gradient(to top, transparent, rgba(77,143,255,0.06));
+  animation: rayFade 3s ease-in-out infinite alternate;
+}
+.sp-ray:nth-child(1)  { transform: translateX(-50%) rotate(-40deg); animation-delay: 0s; }
+.sp-ray:nth-child(2)  { transform: translateX(-50%) rotate(-25deg); height:70%; animation-delay: .2s; }
+.sp-ray:nth-child(3)  { transform: translateX(-50%) rotate(-10deg); height:80%; animation-delay: .1s; }
+.sp-ray:nth-child(4)  { transform: translateX(-50%) rotate(0deg);   height:90%; animation-delay: 0s;   background: linear-gradient(to top, transparent, rgba(77,143,255,0.1)); }
+.sp-ray:nth-child(5)  { transform: translateX(-50%) rotate(10deg);  height:80%; animation-delay: .1s; }
+.sp-ray:nth-child(6)  { transform: translateX(-50%) rotate(25deg);  height:70%; animation-delay: .2s; }
+.sp-ray:nth-child(7)  { transform: translateX(-50%) rotate(40deg);  animation-delay: 0s; }
+@keyframes rayFade { from{opacity:.4} to{opacity:1} }
+
+/* 중앙 글로우 원 */
+.sp-glow-ring {
+  position: absolute; width: 320px; height: 320px; border-radius: 50%;
+  border: 1px solid rgba(77,143,255,0.08);
+  animation: ringPulse 2.5s ease-in-out infinite;
+}
+.sp-glow-ring:nth-child(2) { width: 200px; height: 200px; border-color: rgba(77,143,255,0.12); animation-delay: .4s; }
+.sp-glow-ring:nth-child(3) { width: 100px; height: 100px; border-color: rgba(77,143,255,0.2); animation-delay: .8s; }
+@keyframes ringPulse { 0%,100%{transform:scale(1);opacity:.6} 50%{transform:scale(1.04);opacity:1} }
+
+/* 아이콘 */
+.sp-icon-wrap {
+  position: relative; z-index: 2; margin-bottom: 28px;
+  animation: iconDrop .7s cubic-bezier(.34,1.56,.64,1) both;
+}
+.sp-icon {
+  width: 80px; height: 80px; border-radius: 22px;
+  background: linear-gradient(145deg, #0d2060, #1a4abf);
+  border: 1px solid rgba(100,160,255,0.4);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2.2rem;
+  box-shadow:
+    0 0 0 1px rgba(77,143,255,0.1),
+    0 0 40px rgba(77,143,255,0.3),
+    0 0 80px rgba(77,143,255,0.15),
+    inset 0 1px 0 rgba(255,255,255,0.1);
+}
+@keyframes iconDrop { from{transform:translateY(-30px) scale(.7);opacity:0} to{transform:translateY(0) scale(1);opacity:1} }
+
+/* 타이틀 */
+.sp-title-wrap {
+  position: relative; z-index: 2; text-align: center; margin-bottom: 8px;
+  animation: titleUp .6s .2s cubic-bezier(.34,1.56,.64,1) both;
+}
+.sp-title-main {
+  font-family: 'Raleway', sans-serif;
+  font-size: 3.8rem; line-height: 1; letter-spacing: 14px;
+  font-weight: 900; text-transform: uppercase;
+  background: linear-gradient(180deg, #ffffff 0%, #a8d0ff 50%, #4d8fff 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 0 24px rgba(77,143,255,0.55));
+}
+.sp-title-sub {
+  font-family: 'Outfit', sans-serif;
+  font-size: .6rem; letter-spacing: 7px; text-transform: uppercase;
+  color: rgba(126,184,255,0.45); margin-top: 6px; font-weight: 300;
+  animation: fadeUp .5s .4s ease both;
+}
+@keyframes titleUp { from{transform:translateY(16px);opacity:0} to{transform:translateY(0);opacity:1} }
+
+/* 프로그레스 */
+.sp-progress-wrap {
+  position: relative; z-index: 2;
+  width: 180px; margin-bottom: 28px;
+  animation: fadeUp .4s .5s ease both;
+}
+.sp-progress-track {
+  height: 1px; background: rgba(255,255,255,0.07); border-radius: 1px; overflow: hidden;
+}
+.sp-progress-fill {
+  height: 100%; width: 0;
+  background: linear-gradient(90deg, #4d8fff, #7eb8ff, #ffffff);
+  border-radius: 1px;
+  animation: fillBar 1.9s .5s cubic-bezier(.4,0,.2,1) forwards;
+  box-shadow: 0 0 8px rgba(77,143,255,0.8);
+}
+.sp-progress-pct {
+  text-align: right; font-family: 'Space Grotesk', sans-serif;
+  font-size: .65rem; color: rgba(126,184,255,0.4);
+  margin-top: 6px; letter-spacing: 1px;
+  animation: countUp 1.9s .5s ease forwards;
+}
+@keyframes fillBar { to { width: 100%; } }
+@keyframes countUp {
+  0%  { --n: 0; }  20% { --n: 20; } 40% { --n: 45; }
+  70% { --n: 72; } 90% { --n: 91; } 100% { --n: 100; }
+}
+@keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+
+/* 언어 선택 */
+.sp-lang {
+  position: relative; z-index: 2;
+  display: flex; gap: 6px;
+  animation: fadeUp .4s .6s ease both;
+}
+.sp-lang-btn {
+  padding: 5px 13px; border-radius: 20px;
+  border: 1px solid rgba(100,160,255,0.12);
+  background: transparent;
+  color: rgba(126,184,255,0.35);
+  font-family: 'Inter', sans-serif; font-size: .72rem;
+  cursor: pointer; transition: all .2s ease;
+  letter-spacing: .3px;
+}
+.sp-lang-btn:hover { border-color: rgba(100,160,255,0.4); color: rgba(126,184,255,0.7); }
+.sp-lang-btn.active {
+  background: rgba(77,143,255,0.12);
+  border-color: rgba(100,160,255,0.4);
+  color: #7eb8ff;
+}
+
+/* ── 헤더 ── */
+header{
+  position:sticky;top:0;z-index:100;
+  height:58px;padding:0 18px;
+  display:flex;align-items:center;justify-content:space-between;
+  background:rgba(10,15,30,.85);backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+}
+.logo{display:flex;align-items:center;gap:10px;font-family:var(--fd);font-size:1.05rem;font-weight:800}
+.logo-icon{
+  width:32px;height:32px;border-radius:9px;
+  background:linear-gradient(135deg,#1a3a7a,#2a5abf);
+  border:1px solid var(--border-h);
+  display:flex;align-items:center;justify-content:center;font-size:1rem;
+  box-shadow:0 0 14px rgba(77,143,255,0.2);
+}
+/* 프로필 */
+.hdr-right{display:flex;align-items:center;gap:10px}
+.profile-btn{
+  width:34px;height:34px;border-radius:50%;
+  background:linear-gradient(135deg,#1a3a7a,#2a5abf);
+  border:2px solid var(--border-h);
+  display:flex;align-items:center;justify-content:center;
+  font-size:.9rem;cursor:pointer;transition:all var(--tr);
+  color:#fff;font-weight:700;font-family:var(--fd);
+}
+.profile-btn:hover{box-shadow:0 0 12px rgba(77,143,255,0.4)}
+
+/* ── 탭 바 ── */
+.tab-bar{
+  display:flex;gap:2px;padding:10px 18px;
+  border-bottom:1px solid var(--border);
+  overflow-x:auto;scrollbar-width:none;
+  background:rgba(10,15,30,.6);backdrop-filter:blur(10px);
+}
+.tab-bar::-webkit-scrollbar{display:none}
+.tab-btn{
+  flex-shrink:0;padding:7px 16px;border-radius:8px;border:none;
+  background:transparent;color:var(--muted);
+  font-family:var(--fb);font-size:0.8rem;font-weight:600;
+  cursor:pointer;transition:all var(--tr);
+  display:flex;align-items:center;gap:5px;
+}
+.tab-btn:hover{color:var(--text2);background:var(--dim)}
+.tab-btn.active{background:linear-gradient(135deg,#1a3a7a,#2a5abf);color:#fff;box-shadow:0 2px 10px rgba(77,143,255,.25)}
+
+.tab-panel{display:none;padding:18px;max-width:680px;margin:0 auto;width:100%}
+.tab-panel.active{display:block}
+
+/* ── 검색 ── */
+.search-wrap{position:relative;margin-bottom:18px}
+.search-input{
+  width:100%;padding:10px 14px 10px 38px;
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  color:var(--text);font-family:var(--fb);font-size:.86rem;outline:none;
+  transition:border-color var(--tr);
+}
+.search-input:focus{border-color:var(--border-h)}
+.search-input::placeholder{color:var(--muted)}
+.search-ico{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:.85rem;pointer-events:none}
+.search-cnt{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:.7rem;color:var(--muted)}
+
+/* ── 카테고리 ── */
+.cat-block{margin-bottom:10px;border-radius:var(--r);overflow:hidden;border:1px solid var(--border)}
+.cat-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:13px 16px;cursor:pointer;
+  background:var(--surface);
+  transition:background var(--tr);
+  user-select:none;
+}
+.cat-header:hover{background:var(--card)}
+.cat-header-left{display:flex;align-items:center;gap:10px}
+.cat-arrow{
+  font-size:.65rem;color:var(--muted);transition:transform var(--tr);
+}
+.cat-block.open .cat-arrow{transform:rotate(90deg)}
+.cat-name{font-family:var(--fd);font-size:.78rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent2)}
+.cat-cnt{font-size:.68rem;padding:2px 8px;background:var(--dim);border:1px solid var(--border);border-radius:12px;color:var(--muted)}
+.cat-actions{display:flex;gap:4px}
+.icon-btn{
+  width:26px;height:26px;border-radius:7px;border:1px solid var(--border);
+  background:transparent;color:var(--muted);cursor:pointer;font-size:.72rem;
+  display:flex;align-items:center;justify-content:center;transition:all var(--tr);
+}
+.icon-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--dim)}
+.icon-btn.d:hover{border-color:var(--danger);color:var(--danger);background:rgba(255,94,114,.08)}
+
+/* ── 문장 목록 ── */
+.phrase-list{display:none;flex-direction:column;gap:1px;background:var(--bg2)}
+.cat-block.open .phrase-list{display:flex}
+
+.phrase-card{
+  position:relative;overflow:hidden;
+  background:var(--card);padding:13px 16px;
+  display:flex;align-items:center;gap:12px;
+  cursor:pointer;transition:all var(--tr);user-select:none;
+}
+.phrase-card::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:linear-gradient(180deg,var(--accent),var(--accent2));
+  transform:scaleY(0);transform-origin:center;transition:transform var(--tr);
+}
+.phrase-card:hover{background:var(--card-h);padding-left:20px}
+.phrase-card:hover::before{transform:scaleY(1)}
+.phrase-card:active{transform:scale(.988)}
+
+.phrase-text{flex:1;font-size:.87rem;line-height:1.55;color:var(--text);word-break:break-all}
+.copy-chip{
+  flex-shrink:0;font-size:.68rem;font-weight:600;
+  padding:3px 9px;border-radius:6px;
+  background:var(--surface);border:1px solid var(--border);color:var(--muted);
+  transition:all var(--tr);white-space:nowrap;
+}
+.phrase-card:hover .copy-chip{background:var(--dim);border-color:var(--border-h);color:var(--accent2)}
+.phrase-card.copied{background:rgba(77,255,166,.05)}
+.phrase-card.copied::before{transform:scaleY(1);background:var(--success)}
+.phrase-card.copied .copy-chip{background:rgba(77,255,166,.1);border-color:rgba(77,255,166,.3);color:var(--success)}
+
+/* 설정모드 카드 */
+.phrase-card.em{cursor:default}
+.phrase-card.em:hover{background:var(--card);padding-left:16px}
+.phrase-card.em:hover::before{transform:scaleY(0)}
+.edit-acts{display:flex;gap:4px;flex-shrink:0}
+.edit-btn{
+  width:26px;height:26px;border-radius:7px;border:1px solid var(--border);
+  background:transparent;color:var(--muted);cursor:pointer;font-size:.72rem;
+  display:flex;align-items:center;justify-content:center;transition:all var(--tr);
+}
+.edit-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--dim)}
+.edit-btn.d:hover{border-color:var(--danger);color:var(--danger);background:rgba(255,94,114,.08)}
+
+/* 추가 영역 */
+.add-phrase-btn{
+  width:100%;padding:10px;border:none;
+  background:var(--bg2);color:var(--muted);
+  font-family:var(--fb);font-size:.8rem;font-weight:600;
+  cursor:pointer;transition:all var(--tr);
+  display:flex;align-items:center;justify-content:center;gap:5px;
+  border-top:1px dashed rgba(77,143,255,.15);
+}
+.add-phrase-btn:hover{background:var(--dim);color:var(--accent)}
+
+.inline-wrap{
+  background:var(--surface);border-top:1px solid var(--border-h);
+  padding:12px 14px;display:flex;gap:8px;align-items:flex-start;
+  animation:fadeSlide .15s ease;
+}
+@keyframes fadeSlide{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+.inline-ta{
+  flex:1;background:transparent;border:none;outline:none;
+  color:var(--text);font-family:var(--fb);font-size:.86rem;
+  resize:none;line-height:1.5;min-height:36px;
+}
+.inline-ta::placeholder{color:var(--muted)}
+.btn-save{
+  padding:6px 14px;border-radius:var(--rs);border:none;
+  background:linear-gradient(135deg,#1a3a7a,#2a5abf);
+  color:#fff;font-family:var(--fb);font-size:.78rem;font-weight:700;
+  cursor:pointer;flex-shrink:0;transition:opacity var(--tr);
+  box-shadow:0 2px 10px rgba(77,143,255,.2);
+}
+.btn-save:hover{opacity:.85}
+.btn-cancel{
+  padding:6px 10px;border-radius:var(--rs);
+  border:1px solid var(--border);background:transparent;
+  color:var(--muted);font-size:.78rem;cursor:pointer;flex-shrink:0;transition:all var(--tr);
+}
+.btn-cancel:hover{border-color:var(--danger);color:var(--danger)}
+
+.add-cat-btn{
+  width:100%;padding:13px;
+  background:transparent;border:1px dashed var(--border);border-radius:var(--r);
+  color:var(--muted);font-family:var(--fb);font-size:.84rem;font-weight:600;
+  cursor:pointer;transition:all var(--tr);
+  display:flex;align-items:center;justify-content:center;gap:7px;margin-top:10px;
+}
+.add-cat-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--dim)}
+
+/* ── 드래그 ── */
+.phrase-card[draggable]:hover{cursor:grab}
+.phrase-card.dragging{opacity:.4;transform:scale(.97)}
+.phrase-card.drag-over{border-top:2px solid var(--accent)}
+
+/* ── 위젯 탭 ── */
+.widget-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px}
+@media(max-width:480px){.widget-grid{grid-template-columns:1fr}}
+.widget-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px}
+.widget-label{font-size:.68rem;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:8px}
+.widget-clock{font-family:var(--fd);font-size:2rem;font-weight:800;letter-spacing:-1px}
+.widget-date{font-size:.78rem;color:var(--text2);margin-top:4px}
+.widget-weather{display:flex;align-items:center;gap:12px}
+.weather-ico{font-size:2.2rem}
+.weather-temp{font-family:var(--fd);font-size:1.8rem;font-weight:800}
+.weather-desc{font-size:.75rem;color:var(--text2);margin-top:2px}
+.weather-city{font-size:.7rem;color:var(--muted);margin-top:6px}
+
+/* 언어 버튼 */
+.lang-row{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+.lang-btn{
+  padding:6px 14px;border-radius:20px;border:1px solid var(--border);
+  background:transparent;color:var(--muted);font-family:var(--fb);font-size:.78rem;
+  cursor:pointer;transition:all var(--tr);
+}
+.lang-btn.active{background:var(--dim);border-color:var(--border-h);color:var(--accent2)}
+
+/* 푸시 배너 */
+.push-banner{
+  background:linear-gradient(135deg,rgba(77,143,255,.1),rgba(126,184,255,.05));
+  border:1px solid var(--border-h);border-radius:var(--r);
+  padding:14px 16px;display:flex;align-items:center;gap:14px;
+}
+.push-icon{font-size:1.6rem;flex-shrink:0}
+.push-info h4{font-family:var(--fd);font-size:.88rem;margin-bottom:3px}
+.push-info p{font-size:.75rem;color:var(--text2)}
+.btn-push{
+  margin-left:auto;flex-shrink:0;padding:7px 16px;border-radius:var(--rs);border:none;
+  background:linear-gradient(135deg,#1a3a7a,#2a5abf);color:#fff;
+  font-family:var(--fb);font-size:.78rem;font-weight:700;cursor:pointer;
+  transition:opacity var(--tr);
+}
+.btn-push:hover{opacity:.85}
+#pushStatus{font-size:.75rem;color:var(--muted);margin-top:8px}
+
+/* ── 폴더 탭 ── */
+.folder-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
+.folder-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  padding:16px 12px;display:flex;flex-direction:column;align-items:center;gap:8px;
+  cursor:pointer;transition:all var(--tr);position:relative;
+}
+.folder-card:hover{border-color:var(--border-h);transform:translateY(-2px)}
+.folder-icon-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:3px;
+  width:48px;height:48px;border-radius:12px;
+  background:var(--card);padding:5px;overflow:hidden;
+}
+.folder-mini{border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:.7rem}
+.folder-name{font-family:var(--fd);font-size:.78rem;font-weight:700;text-align:center}
+.folder-cnt{font-size:.68rem;color:var(--muted)}
+.folder-del{
+  position:absolute;top:6px;right:6px;width:18px;height:18px;border-radius:4px;
+  background:rgba(255,94,114,.15);border:none;color:var(--danger);
+  font-size:.6rem;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  opacity:0;transition:opacity var(--tr);
+}
+.folder-card:hover .folder-del{opacity:1}
+
+/* ── 설정(테마) 탭 ── */
+.settings-list{display:flex;flex-direction:column;gap:8px}
+.setting-row{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  padding:14px 16px;display:flex;align-items:center;gap:14px;
+}
+.setting-label{flex:1}
+.setting-label h4{font-size:.88rem;font-weight:600;margin-bottom:2px}
+.setting-label p{font-size:.73rem;color:var(--muted)}
+/* 토글 */
+.toggle{position:relative;width:44px;height:24px;cursor:pointer;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-track{
+  position:absolute;inset:0;border-radius:12px;
+  background:var(--surface);border:1px solid var(--border);transition:all var(--tr);
+}
+.toggle-thumb{
+  position:absolute;width:16px;height:16px;border-radius:50%;
+  background:var(--muted);top:3px;left:3px;transition:all var(--tr);
+}
+.toggle input:checked ~ .toggle-track{background:linear-gradient(135deg,#1a3a7a,#2a5abf);border-color:var(--accent)}
+.toggle input:checked ~ .toggle-thumb{transform:translateX(20px);background:#fff}
+/* 컬러 스와치 */
+.color-row{display:flex;gap:8px;flex-wrap:wrap;padding:4px 0}
+.color-sw{
+  width:32px;height:32px;border-radius:8px;cursor:pointer;
+  border:2px solid transparent;transition:all var(--tr);
+}
+.color-sw:hover{transform:scale(1.12)}
+.color-sw.active{border-color:#fff;box-shadow:0 0 10px rgba(255,255,255,.2)}
+/* 계정 */
+.account-row{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  padding:14px 16px;display:flex;align-items:center;gap:12px;
+}
+.avatar{
+  width:40px;height:40px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,#1a3a7a,#2a5abf);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--fd);font-weight:700;font-size:1rem;color:#fff;
+  border:2px solid var(--border-h);
+}
+.account-info{flex:1}
+.account-info .name{font-weight:600;font-size:.88rem}
+.account-info .email{font-size:.73rem;color:var(--muted);margin-top:1px}
+.btn-sm{
+  padding:6px 14px;border-radius:var(--rs);border:1px solid var(--border);
+  background:transparent;color:var(--text2);font-family:var(--fb);
+  font-size:.78rem;cursor:pointer;transition:all var(--tr);
+}
+.btn-sm:hover{border-color:var(--accent);color:var(--accent)}
+.btn-login{
+  width:100%;padding:12px;border-radius:var(--r);border:1px solid var(--border);
+  background:var(--surface);color:var(--text);font-family:var(--fb);
+  font-size:.86rem;font-weight:500;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  transition:all var(--tr);
+}
+.btn-login:hover{border-color:var(--border-h);background:var(--card)}
+.section-label{
+  font-size:.68rem;text-transform:uppercase;letter-spacing:1.5px;
+  color:var(--muted);margin-bottom:8px;margin-top:18px;
+}
+
+/* ── 빈 상태 ── */
+.empty{text-align:center;padding:50px 20px;color:var(--muted)}
+.empty-ico{font-size:2.8rem;opacity:.4;margin-bottom:12px}
+.empty h3{font-family:var(--fd);font-size:.95rem;color:var(--text2);margin-bottom:5px}
+.empty p{font-size:.8rem;line-height:1.6}
+
+/* ── 토스트 ── */
+#toast{
+  position:fixed;bottom:24px;left:50%;
+  transform:translateX(-50%) translateY(16px);
+  background:linear-gradient(135deg,#1a3a7a,#2a5abf);
+  border:1px solid var(--border-h);color:#fff;
+  font-family:var(--fb);font-size:.8rem;font-weight:600;
+  padding:9px 18px;border-radius:20px;
+  opacity:0;transition:all .22s ease;pointer-events:none;white-space:nowrap;
+  box-shadow:0 4px 20px rgba(77,143,255,.3);
+  display:flex;align-items:center;gap:7px;
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ── 반응형 ── */
+@media(max-width:480px){
+  header{padding:0 14px}
+  .tab-panel{padding:14px}
+  .tab-btn{padding:6px 12px;font-size:.76rem}
+}
+</style>
+</head>
+<body>
+
+<!-- 스플래시 -->
+<div id="splash">
+  <!-- 배경 빛줄기 -->
+  <div class="sp-rays">
+    <div class="sp-ray"></div><div class="sp-ray"></div><div class="sp-ray"></div>
+    <div class="sp-ray"></div><div class="sp-ray"></div><div class="sp-ray"></div>
+    <div class="sp-ray"></div>
+  </div>
+  <!-- 링 -->
+  <div class="sp-glow-ring"></div>
+  <div class="sp-glow-ring"></div>
+  <div class="sp-glow-ring"></div>
+  <!-- 아이콘 -->
+  <div class="sp-icon-wrap">
+    <div class="sp-icon">📋</div>
+  </div>
+  <!-- 타이틀 -->
+  <div class="sp-title-wrap">
+    <div class="sp-title-main">QuickCopy</div>
+    <div class="sp-title-sub">Clipboard Manager</div>
+  </div>
+  <!-- 프로그레스 -->
+  <div class="sp-progress-wrap">
+    <div class="sp-progress-track">
+      <div class="sp-progress-fill"></div>
+    </div>
+    <div class="sp-progress-pct" id="spPct">0%</div>
+  </div>
+  <!-- 언어 -->
+  <div class="sp-lang">
+    <button class="sp-lang-btn active" onclick="setSplashLang('ko',this)">한국어</button>
+    <button class="sp-lang-btn"        onclick="setSplashLang('en',this)">English</button>
+    <button class="sp-lang-btn"        onclick="setSplashLang('ja',this)">日本語</button>
+  </div>
+</div>
+
+<!-- 헤더 -->
+<header>
+  <div class="logo">
+    <div class="logo-icon">📋</div>
+    QuickCopy
+  </div>
+  <div class="hdr-right">
+    <div class="profile-btn" id="profileBtn" onclick="switchTab('settings')">👤</div>
+  </div>
+</header>
+
+<!-- 탭 바 -->
+<!-- ── 홈: 실행 / 설정 큰 버튼 ── -->
+<div id="homeScreen" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 20px;gap:16px;max-width:500px;margin:0 auto;width:100%">
+  <div style="font-family:'Raleway',sans-serif;font-size:.62rem;font-weight:700;
+    letter-spacing:5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">
+    MODE SELECT
+  </div>
+  <!-- 실행 버튼 -->
+  <button onclick="goMode('run')" style="
+    width:100%;padding:28px 24px;border-radius:20px;border:1px solid var(--border-h);
+    background:linear-gradient(135deg,#0d2060 0%,#1a3a80 50%,#0d2060 100%);
+    cursor:pointer;transition:all .25s ease;text-align:left;position:relative;overflow:hidden;
+    display:flex;align-items:center;gap:20px;
+    box-shadow:0 8px 40px rgba(77,143,255,0.15), inset 0 1px 0 rgba(255,255,255,0.06)">
+    <div style="width:54px;height:54px;border-radius:14px;background:rgba(77,143,255,0.15);
+      border:1px solid rgba(77,143,255,0.3);display:flex;align-items:center;justify-content:center;
+      font-size:1.6rem;flex-shrink:0">▶</div>
+    <div style="flex:1">
+      <div style="font-family:'Raleway',sans-serif;font-size:1.3rem;font-weight:800;
+        color:#fff;letter-spacing:1px;margin-bottom:4px" class="t" data-k="run">실행 모드</div>
+      <div style="font-size:.78rem;color:var(--text2);font-family:'Outfit',sans-serif;font-weight:300">
+        저장된 문장을 클릭해 즉시 복사
+      </div>
+    </div>
+    <div style="font-size:1.2rem;color:rgba(77,143,255,0.5)">›</div>
+  </button>
+  <!-- 설정 버튼 -->
+  <button onclick="goMode('edit')" style="
+    width:100%;padding:28px 24px;border-radius:20px;border:1px solid var(--border);
+    background:var(--surface);
+    cursor:pointer;transition:all .25s ease;text-align:left;
+    display:flex;align-items:center;gap:20px;
+    box-shadow:0 4px 20px rgba(0,0,0,0.2)">
+    <div style="width:54px;height:54px;border-radius:14px;background:rgba(255,255,255,0.04);
+      border:1px solid var(--border);display:flex;align-items:center;justify-content:center;
+      font-size:1.6rem;flex-shrink:0">⚙</div>
+    <div style="flex:1">
+      <div style="font-family:'Raleway',sans-serif;font-size:1.3rem;font-weight:800;
+        color:var(--text);letter-spacing:1px;margin-bottom:4px" class="t" data-k="edit">편집 모드</div>
+      <div style="font-size:.78rem;color:var(--muted);font-family:'Outfit',sans-serif;font-weight:300">
+        카테고리와 문장 추가·수정·삭제
+      </div>
+    </div>
+    <div style="font-size:1.2rem;color:var(--muted)">›</div>
+  </button>
+</div>
+
+<div class="tab-bar">
+  <button class="tab-btn" id="tabHome" onclick="showHome()" style="color:var(--accent2)">🏠 홈</button>
+  <button class="tab-btn" onclick="switchTab('widget')"   data-tab="widget">🕐 <span class="t" data-k="widget">위젯</span></button>
+  <button class="tab-btn" onclick="switchTab('folder')"   data-tab="folder">📂 <span class="t" data-k="folder">폴더</span></button>
+  <button class="tab-btn" onclick="switchTab('settings')" data-tab="settings">👤 <span class="t" data-k="settings">설정</span></button>
+</div>
+
+<!-- 실행 탭 -->
+<div class="tab-panel" id="tab-run">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+    <button onclick="showHome()" style="width:32px;height:32px;border-radius:9px;
+      border:1px solid var(--border);background:transparent;color:var(--text2);
+      cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center">‹</button>
+    <div style="font-family:'Raleway',sans-serif;font-size:.7rem;font-weight:800;
+      letter-spacing:4px;text-transform:uppercase;color:var(--accent2)">RUN MODE</div>
+  </div>
+  <div class="search-wrap">
+    <span class="search-ico">🔍</span>
+    <input class="search-input" type="text" id="searchInput"
+           placeholder="문장 검색..." oninput="renderRun()"/>
+    <span class="search-cnt" id="searchCnt"></span>
+  </div>
+  <div id="runContent"></div>
+</div>
+
+<!-- 설정(편집) 탭 -->
+<div class="tab-panel" id="tab-edit">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+    <button onclick="showHome()" style="width:32px;height:32px;border-radius:9px;
+      border:1px solid var(--border);background:transparent;color:var(--text2);
+      cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center">‹</button>
+    <div style="font-family:'Raleway',sans-serif;font-size:.7rem;font-weight:800;
+      letter-spacing:4px;text-transform:uppercase;color:var(--text2)">EDIT MODE</div>
+  </div>
+  <div id="editContent"></div>
+</div>
+
+<!-- 위젯 탭 -->
+<div class="tab-panel" id="tab-widget">
+  <div class="lang-row" id="langRow">
+    <button class="lang-btn active" onclick="setLang('ko',this)">🇰🇷 한국어</button>
+    <button class="lang-btn"        onclick="setLang('en',this)">🇺🇸 English</button>
+    <button class="lang-btn"        onclick="setLang('ja',this)">🇯🇵 日本語</button>
+  </div>
+  <div class="widget-grid">
+    <div class="widget-card">
+      <div class="widget-label" id="wLabelClock">시계</div>
+      <div class="widget-clock" id="wClock">--:--:--</div>
+      <div class="widget-date"  id="wDate">-</div>
+    </div>
+    <div class="widget-card">
+      <div class="widget-label" id="wLabelWeather">날씨</div>
+      <div class="widget-weather">
+        <div class="weather-ico" id="wIcon">⏳</div>
+        <div>
+          <div class="weather-temp" id="wTemp">--°</div>
+          <div class="weather-desc" id="wDesc">위치 확인 중...</div>
+        </div>
+      </div>
+      <div class="weather-city" id="wCity"></div>
+    </div>
+  </div>
+  <div class="push-banner">
+    <div class="push-icon">🔔</div>
+    <div class="push-info">
+      <h4 class="t" data-k="pushTitle">푸시 알림</h4>
+      <p  class="t" data-k="pushDesc">리마인더 알림을 받아보세요</p>
+    </div>
+    <button class="btn-push" onclick="requestPush()">
+      <span class="t" data-k="enable">활성화</span>
+    </button>
+  </div>
+  <div id="pushStatus"></div>
+</div>
+
+<!-- 폴더 탭 -->
+<div class="tab-panel" id="tab-folder">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+    <div style="font-family:var(--fd);font-size:.78rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent2)" class="t" data-k="folder">폴더</div>
+    <button class="btn-sm" onclick="addFolder()">＋ <span class="t" data-k="newFolder">새 폴더</span></button>
+  </div>
+  <div class="folder-grid" id="folderGrid"></div>
+</div>
+
+<!-- 계정/테마 설정 탭 -->
+<div class="tab-panel" id="tab-settings">
+  <!-- 계정 -->
+  <div class="section-label t" data-k="account">계정</div>
+  <div id="loginArea">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;display:flex;flex-direction:column;gap:12px">
+      <div class="field-wrap">
+        <label style="font-size:.68rem;text-transform:uppercase;letter-spacing:1px;color:var(--muted);display:block;margin-bottom:5px">이름</label>
+        <input id="loginName" type="text" placeholder="홍길동" maxlength="20"
+          style="width:100%;background:var(--card);border:1px solid var(--border);border-radius:var(--rs);
+            color:var(--text);font-family:'Outfit',sans-serif;font-size:.88rem;padding:10px 14px;outline:none;
+            transition:border-color .2s"
+          onfocus="this.style.borderColor='var(--border-h)'"
+          onblur="this.style.borderColor='var(--border)'"
+          onkeydown="if(event.key==='Enter')document.getElementById('loginEmail').focus()"/>
+      </div>
+      <div class="field-wrap">
+        <label style="font-size:.68rem;text-transform:uppercase;letter-spacing:1px;color:var(--muted);display:block;margin-bottom:5px">이메일</label>
+        <div style="position:relative">
+          <input id="loginEmail" type="email" placeholder="example@email.com"
+            style="width:100%;background:var(--card);border:1px solid var(--border);border-radius:var(--rs);
+              color:var(--text);font-family:'Outfit',sans-serif;font-size:.88rem;padding:10px 14px;outline:none;
+              transition:border-color .2s"
+            onfocus="this.style.borderColor='var(--border-h)'"
+            onblur="validateEmailField(this)"
+            onkeydown="if(event.key==='Enter')doLoginSave()"
+            oninput="clearEmailError()"/>
+          <div id="emailError" style="font-size:.72rem;color:var(--danger);margin-top:4px;display:none">
+            ⚠ 올바른 이메일 형식을 입력해주세요 (예: user@gmail.com)
+          </div>
+        </div>
+      </div>
+      <button onclick="doLoginSave()" style="
+        width:100%;padding:11px;border-radius:var(--rs);border:none;
+        background:linear-gradient(135deg,#1a3a7a,#2a5abf);color:#fff;
+        font-family:'Raleway',sans-serif;font-size:.88rem;font-weight:700;
+        cursor:pointer;transition:opacity .2s;letter-spacing:.5px"
+        onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+        저장
+      </button>
+    </div>
+  </div>
+  <div id="userArea" style="display:none">
+    <div class="account-row">
+      <div class="avatar" id="userAvatar">?</div>
+      <div class="account-info">
+        <div class="name"  id="userName">-</div>
+        <div class="email" id="userEmail">-</div>
+      </div>
+      <button class="btn-sm" onclick="doLogout()"><span class="t" data-k="logout">로그아웃</span></button>
+    </div>
+  </div>
+
+  <!-- 테마 -->
+  <div class="section-label t" data-k="theme">테마</div>
+  <div class="settings-list">
+    <div class="setting-row">
+      <div class="setting-label">
+        <h4 class="t" data-k="darkMode">다크 모드</h4>
+        <p  class="t" data-k="darkModeDesc">어두운 배경</p>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="darkCb" checked onchange="applyDark()"/>
+        <div class="toggle-track"></div>
+        <div class="toggle-thumb"></div>
+      </label>
+    </div>
+  </div>
+
+  <!-- 강조색 -->
+  <div class="section-label t" data-k="accentColor">강조색</div>
+  <div class="color-row" id="colorRow"></div>
+
+  <!-- 앱 아이콘 -->
+  <div class="section-label t" data-k="appIcon">앱 아이콘</div>
+  <div class="setting-row" style="flex-direction:column;align-items:flex-start;gap:10px">
+    <div style="display:flex;align-items:center;gap:14px;width:100%">
+      <div id="iconPreview" style="width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,#1a3a7a,#2a5abf);display:flex;align-items:center;justify-content:center;font-size:1.6rem;overflow:hidden;border:1px solid var(--border-h)">📋</div>
+      <div style="flex:1">
+        <div style="font-size:.86rem;font-weight:600;margin-bottom:4px" class="t" data-k="pwaIcon">Chrome 설치 아이콘</div>
+        <div style="font-size:.73rem;color:var(--muted)" class="t" data-k="pwaIconDesc">재설치 시 적용됩니다</div>
+      </div>
+      <button class="btn-sm" onclick="document.getElementById('iconFile').click()">업로드</button>
+    </div>
+    <input type="file" id="iconFile" accept="image/*" style="display:none" onchange="uploadIcon(this)"/>
+  </div>
+
+  <!-- 데이터 -->
+  <div class="section-label t" data-k="data">데이터</div>
+  <div class="settings-list">
+    <div class="setting-row" style="cursor:pointer" onclick="clearData()">
+      <div class="setting-label">
+        <h4 style="color:var(--danger)" class="t" data-k="clearData">전체 데이터 초기화</h4>
+        <p class="t" data-k="clearDataDesc">모든 카테고리와 문장을 삭제합니다</p>
+      </div>
+      <span style="color:var(--danger)">🗑</span>
+    </div>
+  </div>
+</div>
+
+<div id="toast"><span>✓</span><span class="t" data-k="copied">복사됨</span></div>
+
+<script>
+// ══ i18n ══
+const I18N = {
+  ko:{ run:'실행',edit:'설정',widget:'위젯',folder:'폴더',settings:'계정',
+       pushTitle:'푸시 알림',pushDesc:'리마인더 알림을 받아보세요',enable:'활성화',
+       newFolder:'새 폴더',account:'계정',loginBtn:'이름 / 이메일 설정',logout:'로그아웃',
+       theme:'테마',darkMode:'다크 모드',darkModeDesc:'어두운 배경',
+       accentColor:'강조색',appIcon:'앱 아이콘',pwaIcon:'Chrome 설치 아이콘',
+       pwaIconDesc:'재설치 시 적용됩니다',data:'데이터',
+       clearData:'전체 데이터 초기화',clearDataDesc:'모든 카테고리와 문장을 삭제합니다',
+       copied:'복사됨',clock:'시계',weather:'날씨' },
+  en:{ run:'Run',edit:'Edit',widget:'Widget',folder:'Folder',settings:'Account',
+       pushTitle:'Push Notifications',pushDesc:'Get reminders',enable:'Enable',
+       newFolder:'New Folder',account:'Account',loginBtn:'Set Name / Email',logout:'Logout',
+       theme:'Theme',darkMode:'Dark Mode',darkModeDesc:'Dark background',
+       accentColor:'Accent Color',appIcon:'App Icon',pwaIcon:'Chrome Install Icon',
+       pwaIconDesc:'Applied after reinstall',data:'Data',
+       clearData:'Clear All Data',clearDataDesc:'Delete all categories and phrases',
+       copied:'Copied',clock:'Clock',weather:'Weather' },
+  ja:{ run:'実行',edit:'設定',widget:'ウィジェット',folder:'フォルダ',settings:'アカウント',
+       pushTitle:'プッシュ通知',pushDesc:'リマインダーを受け取る',enable:'有効化',
+       newFolder:'新しいフォルダ',account:'アカウント',loginBtn:'名前 / メール設定',logout:'ログアウト',
+       theme:'テーマ',darkMode:'ダークモード',darkModeDesc:'暗い背景',
+       accentColor:'アクセントカラー',appIcon:'アプリアイコン',pwaIcon:'Chromeインストールアイコン',
+       pwaIconDesc:'再インストール後に適用',data:'データ',
+       clearData:'全データ初期化',clearDataDesc:'全カテゴリと文章を削除',
+       copied:'コピー済み',clock:'時計',weather:'天気' },
+};
+let lang = localStorage.getItem('qc_lang') || 'ko';
+
+function applyLang() {
+  const t = I18N[lang] || I18N.ko;
+  document.querySelectorAll('.t[data-k]').forEach(el => { if(t[el.dataset.k]) el.textContent = t[el.dataset.k]; });
+  const wlc = document.getElementById('wLabelClock'); if(wlc) wlc.textContent = t.clock;
+  const wlw = document.getElementById('wLabelWeather'); if(wlw) wlw.textContent = t.weather;
+}
+function setLang(l, btn) {
+  lang = l; localStorage.setItem('qc_lang', l);
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  applyLang();
+}
+function setSplashLang(l, btn) {
+  lang = l; localStorage.setItem('qc_lang', l);
+  document.querySelectorAll('.sp-lang-btn').forEach(b => b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+}
+
+// ══ 데이터 ══
+let data = JSON.parse(localStorage.getItem('qc_data') || 'null') || [
+  { id:1, name:'인사',  open:true,  phrases:[{id:11,text:'안녕하세요! 반갑습니다 😊'},{id:12,text:'잘 부탁드립니다.'}] },
+  { id:2, name:'업무',  open:false, phrases:[{id:21,text:'확인 후 회신드리겠습니다.'},{id:22,text:'감사합니다. 수고하셨습니다!'}] },
+];
+let nextId = 300;
+function save() { localStorage.setItem('qc_data', JSON.stringify(data)); }
+
+// ══ 홈 / 모드 전환 ══
+function showHome() {
+  document.getElementById('homeScreen').style.display = 'flex';
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn[data-tab]').forEach(b => b.classList.remove('active'));
+  document.getElementById('tabHome').style.color = 'var(--accent2)';
+}
+function goMode(mode) {
+  document.getElementById('homeScreen').style.display = 'none';
+  document.getElementById('tabHome').style.color = 'var(--muted)';
+  if(mode === 'run') { switchTab('run'); renderRun(); }
+  else               { switchTab('edit'); renderEdit(); }
+}
+
+// ══ 탭 ══
+function switchTab(id) {
+  document.getElementById('homeScreen').style.display = 'none';
+  document.getElementById('tabHome').style.color = 'var(--muted)';
+  document.querySelectorAll('.tab-btn[data-tab]').forEach(b => b.classList.toggle('active', b.dataset.tab === id));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-'+id));
+  if(id==='run')    renderRun();
+  if(id==='edit')   renderEdit();
+  if(id==='folder') renderFolders();
+}
+
+// ══ 렌더: 실행 ══
+function renderRun() {
+  const q    = document.getElementById('searchInput')?.value.toLowerCase() || '';
+  const cnt  = document.getElementById('searchCnt');
+  const root = document.getElementById('runContent');
+  if(!root) return;
+
+  const filtered = data.map(cat => ({
+    ...cat,
+    phrases: cat.phrases.filter(p => !q || p.text.toLowerCase().includes(q))
+  })).filter(cat => cat.phrases.length || !q);
+
+  const total = filtered.reduce((s,c) => s+c.phrases.length, 0);
+  if(cnt) cnt.textContent = q ? `${total}개` : '';
+
+  if(!data.length) {
+    root.innerHTML = `<div class="empty"><div class="empty-ico">📋</div><h3>카테고리가 없습니다</h3><p>설정 탭에서 추가해보세요</p></div>`;
+    return;
+  }
+  if(q && !total) {
+    root.innerHTML = `<div class="empty"><div class="empty-ico">🔍</div><h3>검색 결과 없음</h3><p>"${escH(q)}"에 해당하는 문장이 없어요</p></div>`;
+    return;
+  }
+
+  root.innerHTML = filtered.map(cat => `
+    <div class="cat-block ${cat.open||q?'open':''}" id="r-cat-${cat.id}">
+      <div class="cat-header" onclick="toggleCat(${cat.id})">
+        <div class="cat-header-left">
+          <span class="cat-arrow">▶</span>
+          <span class="cat-name">${escH(cat.name)}</span>
+          <span class="cat-cnt">${cat.phrases.length}</span>
+        </div>
+      </div>
+      <div class="phrase-list">
+        ${cat.phrases.filter(p=>!q||p.text.toLowerCase().includes(q)).map(p=>`
+          <div class="phrase-card" id="rc-${p.id}" onclick="copyPhrase('${escA(p.text)}',${p.id})">
+            <div class="phrase-text">${escH(p.text)}</div>
+            <div class="copy-chip">복사</div>
+          </div>`).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+function toggleCat(id) {
+  const cat = data.find(c => c.id === id);
+  if(cat) { cat.open = !cat.open; save(); }
+  const block = document.getElementById('r-cat-'+id);
+  if(block) block.classList.toggle('open');
+}
+
+// ══ 렌더: 편집 ══
+function renderEdit() {
+  const root = document.getElementById('editContent');
+  if(!root) return;
+  let html = data.map(cat => `
+    <div class="cat-block open" id="e-cat-${cat.id}">
+      <div class="cat-header" id="cat-hdr-${cat.id}">
+        <div class="cat-header-left">
+          <span class="cat-arrow" style="transform:rotate(90deg)">▶</span>
+          <span class="cat-name" id="cat-name-${cat.id}">${escH(cat.name)}</span>
+          <span class="cat-cnt">${cat.phrases.length}</span>
+        </div>
+        <div class="cat-actions">
+          <button class="icon-btn" onclick="startRenameInline(${cat.id})" title="이름 변경">✏</button>
+          <button class="icon-btn d" onclick="deleteCat(${cat.id})" title="삭제">🗑</button>
+        </div>
+      </div>
+      <div class="phrase-list" style="display:flex">
+        ${cat.phrases.map(p=>`
+          <div class="phrase-card em" id="ep-${p.id}">
+            <div class="phrase-text" id="pt-${p.id}">${escH(p.text)}</div>
+            <div class="edit-acts">
+              <button class="edit-btn"   onclick="startEditPhrase(${cat.id},${p.id})">✏</button>
+              <button class="edit-btn d" onclick="delPhrase(${cat.id},${p.id})">✕</button>
+            </div>
+          </div>`).join('')}
+        <div id="ei-${cat.id}"></div>
+        <button class="add-phrase-btn" onclick="showAdd(${cat.id})">＋ 문장 추가</button>
+      </div>
+    </div>
+  `).join('');
+  html += `
+    <div id="add-cat-area">
+      <button class="add-cat-btn" onclick="showAddCat()">＋ 카테고리 추가</button>
+    </div>`;
+  root.innerHTML = html;
+}
+
+// ══ 카테고리 CRUD ══
+
+// 카테고리 추가 — 인라인
+function showAddCat() {
+  const area = document.getElementById('add-cat-area');
+  if(!area) return;
+  area.innerHTML = `
+    <div class="inline-wrap" style="border-radius:var(--r);border:1px solid var(--border-h);margin-top:0">
+      <input id="newCatInput" class="inline-ta" type="text" placeholder="카테고리 이름 입력..."
+             style="min-height:auto;padding:4px 0"
+             onkeydown="addCatKey(event)" autofocus/>
+      <button class="btn-save"   onclick="addCatSave()">추가</button>
+      <button class="btn-cancel" onclick="cancelAddCat()">✕</button>
+    </div>`;
+  setTimeout(() => document.getElementById('newCatInput')?.focus(), 50);
+}
+function addCatKey(e) {
+  if(e.key === 'Enter') addCatSave();
+  if(e.key === 'Escape') cancelAddCat();
+}
+function addCatSave() {
+  const input = document.getElementById('newCatInput');
+  const n = input?.value.trim();
+  if(!n) { input?.focus(); return; }
+  data.push({id:++nextId, name:n, open:true, phrases:[]});
+  save(); renderEdit();
+}
+function cancelAddCat() {
+  const area = document.getElementById('add-cat-area');
+  if(area) area.innerHTML = `<button class="add-cat-btn" onclick="showAddCat()">＋ 카테고리 추가</button>`;
+}
+
+// 카테고리 이름 변경 — 인라인
+function startRenameInline(id) {
+  const cat = data.find(c => c.id === id); if(!cat) return;
+  const hdr = document.getElementById('cat-hdr-' + id); if(!hdr) return;
+
+  // 헤더를 입력 필드로 전환
+  hdr.innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px;flex:1;padding:2px 0">
+      <input id="rename-${id}" type="text" value="${escH(cat.name)}"
+        style="flex:1;background:transparent;border:none;border-bottom:1px solid var(--border-h);
+          color:var(--text);font-family:'Raleway',sans-serif;font-size:.78rem;font-weight:700;
+          letter-spacing:1.5px;text-transform:uppercase;outline:none;padding:2px 4px"
+        onkeydown="renameKey(event,${id})"/>
+      <button class="btn-save" style="padding:4px 12px;font-size:.74rem" onclick="saveRename(${id})">저장</button>
+      <button class="btn-cancel" style="padding:4px 8px;font-size:.74rem" onclick="cancelRename(${id},'${escA(cat.name)}')">✕</button>
+    </div>`;
+  setTimeout(() => {
+    const input = document.getElementById('rename-' + id);
+    if(input) { input.focus(); input.select(); }
+  }, 30);
+}
+function renameKey(e, id) {
+  if(e.key === 'Enter') saveRename(id);
+  if(e.key === 'Escape') {
+    const cat = data.find(c=>c.id===id);
+    if(cat) cancelRename(id, cat.name);
+  }
+}
+function saveRename(id) {
+  const input = document.getElementById('rename-' + id);
+  const n = input?.value.trim();
+  if(!n) { input?.focus(); return; }
+  const cat = data.find(c => c.id === id); if(!cat) return;
+  cat.name = n; save(); renderEdit();
+}
+function cancelRename(id, oldName) {
+  const hdr = document.getElementById('cat-hdr-' + id); if(!hdr) return;
+  const cat = data.find(c=>c.id===id); if(!cat) return;
+  // 원래 헤더로 복원
+  hdr.innerHTML = `
+    <div class="cat-header-left">
+      <span class="cat-arrow" style="transform:rotate(90deg)">▶</span>
+      <span class="cat-name">${escH(cat.name)}</span>
+      <span class="cat-cnt">${cat.phrases.length}</span>
+    </div>
+    <div class="cat-actions">
+      <button class="icon-btn"   onclick="startRenameInline(${id})">✏</button>
+      <button class="icon-btn d" onclick="deleteCat(${id})">🗑</button>
+    </div>`;
+}
+
+function deleteCat(id) {
+  const cat = data.find(c=>c.id===id);
+  // confirm 대신 앱 안에서 처리
+  const block = document.getElementById('e-cat-'+id); if(!block) return;
+  block.style.border = '1px solid rgba(255,94,114,0.4)';
+  block.style.background = 'rgba(255,94,114,0.05)';
+  const hdr = block.querySelector('.cat-header');
+  hdr.innerHTML += `
+    <div id="del-confirm-${id}" style="
+      position:absolute;inset:0;background:rgba(10,15,30,0.92);
+      backdrop-filter:blur(4px);border-radius:var(--r);
+      display:flex;align-items:center;justify-content:center;gap:12px;
+      font-size:.84rem;color:var(--text)">
+      <span>"${escH(cat?.name)}" 삭제할까요?</span>
+      <button onclick="confirmDelCat(${id})" style="padding:6px 16px;border-radius:var(--rs);border:none;background:var(--danger);color:#fff;font-weight:700;cursor:pointer;font-size:.8rem">삭제</button>
+      <button onclick="cancelDelCat(${id})" style="padding:6px 12px;border-radius:var(--rs);border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;font-size:.8rem">취소</button>
+    </div>`;
+  hdr.style.position = 'relative';
+}
+function confirmDelCat(id) {
+  data = data.filter(c=>c.id!==id); save(); renderEdit();
+}
+function cancelDelCat(id) {
+  const block = document.getElementById('e-cat-'+id); if(!block) return;
+  block.style.border = ''; block.style.background = '';
+  const confirm = document.getElementById('del-confirm-'+id);
+  if(confirm) confirm.remove();
+}
+
+// ══ 문장 CRUD ══
+function showAdd(catId) {
+  const wrap = document.getElementById('ei-'+catId); if(!wrap) return;
+  if(wrap.innerHTML){wrap.innerHTML='';return}
+  wrap.innerHTML = `
+    <div class="inline-wrap">
+      <textarea class="inline-ta" id="ta-${catId}" placeholder="문장 입력 (Enter 저장)" rows="2"
+        onkeydown="taKey(event,${catId})"></textarea>
+      <button class="btn-save"   onclick="savePhr(${catId})">저장</button>
+      <button class="btn-cancel" onclick="cancelAdd(${catId})">✕</button>
+    </div>`;
+  setTimeout(()=>document.getElementById('ta-'+catId)?.focus(),50);
+}
+function taKey(e,id){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();savePhr(id)}if(e.key==='Escape')cancelAdd(id)}
+function savePhr(catId) {
+  const ta = document.getElementById('ta-'+catId); const t = ta?.value.trim(); if(!t){ta?.focus();return}
+  const cat = data.find(c=>c.id===catId); if(!cat) return;
+  cat.phrases.push({id:++nextId,text:t}); save(); renderEdit();
+}
+function cancelAdd(id){const el=document.getElementById('ei-'+id);if(el)el.innerHTML=''}
+function startEditPhrase(cid, pid) {
+  const p = data.find(c=>c.id===cid)?.phrases.find(p=>p.id===pid); if(!p) return;
+  const card = document.getElementById('ep-'+pid); if(!card) return;
+  card.innerHTML = `
+    <div style="flex:1;display:flex;flex-direction:column;gap:8px;width:100%">
+      <textarea id="ep-ta-${pid}" style="
+        width:100%;background:transparent;border:none;border-bottom:1px solid var(--border-h);
+        color:var(--text);font-family:'Outfit',sans-serif;font-size:.87rem;line-height:1.55;
+        outline:none;resize:none;padding:2px 0;min-height:36px"
+        onkeydown="editPhraseKey(event,${cid},${pid})"
+      >${escH(p.text)}</textarea>
+      <div style="display:flex;gap:6px;justify-content:flex-end">
+        <button class="btn-cancel" style="padding:4px 10px;font-size:.74rem" onclick="cancelEditPhrase(${cid},${pid})">취소</button>
+        <button class="btn-save"   style="padding:4px 12px;font-size:.74rem" onclick="saveEditPhrase(${cid},${pid})">저장</button>
+      </div>
+    </div>`;
+  const ta = document.getElementById('ep-ta-'+pid);
+  if(ta){ ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
+}
+function editPhraseKey(e, cid, pid) {
+  if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); saveEditPhrase(cid,pid); }
+  if(e.key==='Escape') cancelEditPhrase(cid,pid);
+}
+function saveEditPhrase(cid, pid) {
+  const ta = document.getElementById('ep-ta-'+pid);
+  const t = ta?.value.trim(); if(!t){ ta?.focus(); return; }
+  const p = data.find(c=>c.id===cid)?.phrases.find(p=>p.id===pid); if(!p) return;
+  p.text = t; save(); renderEdit();
+}
+function cancelEditPhrase(cid, pid) {
+  renderEdit();
+}
+function editPhrase(cid,pid){ startEditPhrase(cid,pid); }
+function delPhrase(cid,pid){
+  const c=data.find(c=>c.id===cid); if(!c) return;
+  c.phrases=c.phrases.filter(p=>p.id!==pid); save(); renderEdit();
+}
+
+// ══ 복사 ══
+let toastT = null;
+function copyPhrase(text, id) {
+  const decoded = text.replace(/\\n/g,'\n').replace(/\\'/g,"'");
+  navigator.clipboard.writeText(decoded).then(()=>fb(id))
+    .catch(()=>{const ta=document.createElement('textarea');ta.value=decoded;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);fb(id)});
+}
+function fb(id) {
+  const card = document.getElementById('rc-'+id);
+  if(card){
+    card.classList.add('copied');
+    const chip=card.querySelector('.copy-chip');if(chip)chip.textContent='복사됨 ✓';
+    setTimeout(()=>{card.classList.remove('copied');if(chip)chip.textContent='복사'},1300);
+  }
+  const t=document.getElementById('toast');t.classList.add('show');
+  clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),1400);
+}
+
+// ══ 폴더 ══
+let folders = JSON.parse(localStorage.getItem('qc_folders')||'[]');
+function addFolder(){
+  const n=prompt('폴더 이름'); if(!n?.trim()) return;
+  const checks = data.map(cat=>`
+    <label style="display:flex;align-items:center;gap:8px;padding:7px 0;cursor:pointer;font-size:.84rem">
+      <input type="checkbox" value="${cat.id}" style="accent-color:var(--accent)"/>
+      ${escH(cat.name)}
+    </label>`).join('');
+  // 간단 confirm 방식
+  const div = document.createElement('div');
+  div.style.cssText='position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;padding:20px';
+  div.innerHTML=`
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;width:100%;max-width:360px">
+      <div style="font-family:var(--fd);font-weight:800;font-size:1rem;margin-bottom:14px">📂 폴더에 담을 카테고리</div>
+      <div id="fchk" style="max-height:180px;overflow-y:auto">${checks}</div>
+      <div style="display:flex;gap:8px;margin-top:16px">
+        <button onclick="this.closest('div[style*=fixed]').remove()"
+          style="flex:1;padding:10px;border-radius:9px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer">취소</button>
+        <button id="fSaveBtn"
+          style="flex:2;padding:10px;border-radius:9px;border:none;background:linear-gradient(135deg,#1a3a7a,#2a5abf);color:#fff;font-weight:700;cursor:pointer">저장</button>
+      </div>
+    </div>`;
+  document.body.appendChild(div);
+  div.querySelector('#fSaveBtn').onclick=()=>{
+    const ids=[...div.querySelectorAll('#fchk input:checked')].map(cb=>parseInt(cb.value));
+    if(!ids.length){alert('카테고리를 1개 이상 선택하세요');return}
+    folders.push({id:Date.now(),name:n.trim(),catIds:ids});
+    localStorage.setItem('qc_folders',JSON.stringify(folders));
+    div.remove(); renderFolders();
+  };
+}
+function renderFolders(){
+  const grid=document.getElementById('folderGrid'); if(!grid) return;
+  if(!folders.length){
+    grid.innerHTML='<div class="empty" style="grid-column:1/-1"><div class="empty-ico">📂</div><h3>폴더가 없습니다</h3><p>새 폴더를 만들어보세요</p></div>';
+    return;
+  }
+  grid.innerHTML=folders.map(f=>{
+    const cats=f.catIds.map(id=>data.find(c=>c.id===id)).filter(Boolean);
+    const minis=cats.slice(0,4).map(c=>`<div class="folder-mini" style="background:linear-gradient(135deg,#1a3a7a,#2a5abf)">${c.name[0]}</div>`).join('');
+    return `
+      <div class="folder-card" onclick="openFolder(${f.id})">
+        <button class="folder-del" onclick="event.stopPropagation();delFolder(${f.id})">✕</button>
+        <div class="folder-icon-grid">${minis}</div>
+        <div class="folder-name">${escH(f.name)}</div>
+        <div class="folder-cnt">${cats.length}개 카테고리</div>
+      </div>`;
+  }).join('');
+}
+function openFolder(id){
+  const f=folders.find(f=>f.id===id); if(!f) return;
+  const names=f.catIds.map(id=>data.find(c=>c.id===id)?.name).filter(Boolean).join(', ');
+  showToastMsg(`📂 ${f.name}: ${names}`);
+}
+function delFolder(id){
+  folders=folders.filter(f=>f.id!==id);
+  localStorage.setItem('qc_folders',JSON.stringify(folders));
+  renderFolders();
+}
+function showToastMsg(msg){
+  const t=document.getElementById('toast');
+  t.querySelector('span:last-child').textContent=msg;
+  t.classList.add('show');
+  clearTimeout(toastT);toastT=setTimeout(()=>{t.classList.remove('show');t.querySelector('span:last-child').textContent=(I18N[lang]||I18N.ko).copied},2000);
+}
+
+// ══ 시계 ══
+function startClock(){
+  function tick(){
+    const now=new Date();
+    const days={ko:['일','월','화','수','목','금','토'],en:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],ja:['日','月','火','水','木','金','土']};
+    const d=(days[lang]||days.ko)[now.getDay()];
+    const hh=String(now.getHours()).padStart(2,'0');
+    const mm=String(now.getMinutes()).padStart(2,'0');
+    const ss=String(now.getSeconds()).padStart(2,'0');
+    const wc=document.getElementById('wClock'); if(wc)wc.textContent=`${hh}:${mm}:${ss}`;
+    const wd=document.getElementById('wDate');  if(wd)wd.textContent=`${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')} (${d})`;
+  }
+  tick();setInterval(tick,1000);
+}
+
+// ══ 날씨 ══
+function loadWeather(){
+  if(!navigator.geolocation){setWDesc('위치 불가');return}
+  navigator.geolocation.getCurrentPosition(pos=>{
+    const{latitude:lat,longitude:lon}=pos.coords;
+    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`)
+      .then(r=>r.json()).then(d=>{
+        const w=d.current_weather;
+        const icons={0:'☀️',1:'🌤',2:'⛅',3:'☁️',45:'🌫',51:'🌦',61:'🌧',71:'❄️',80:'🌦',95:'⛈'};
+        setWIcon(icons[w.weathercode]||'🌡');
+        setWTemp(`${Math.round(w.temperature)}°`);
+        setWDesc(`💨 ${w.windspeed}km/h`);
+        fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`)
+          .then(r=>r.json()).then(g=>{
+            const city=g.address?.city||g.address?.town||g.address?.county||'';
+            const el=document.getElementById('wCity');if(el)el.textContent=`📍 ${city}`;
+          }).catch(()=>{});
+      }).catch(()=>setWDesc('날씨 로드 실패'));
+  },()=>setWDesc('위치 권한 필요'));
+}
+function setWIcon(v){const e=document.getElementById('wIcon');if(e)e.textContent=v}
+function setWTemp(v){const e=document.getElementById('wTemp');if(e)e.textContent=v}
+function setWDesc(v){const e=document.getElementById('wDesc');if(e)e.textContent=v}
+
+// ══ 푸시 ══
+function requestPush(){
+  if(!('Notification' in window)){showToastMsg('알림 미지원 브라우저');return}
+  Notification.requestPermission().then(p=>{
+    const el=document.getElementById('pushStatus');
+    if(p==='granted'){
+      if(el){el.textContent='✅ 푸시 알림 활성화됨!';el.style.color='var(--success)'}
+      setTimeout(()=>new Notification('QuickCopy 📋',{body:'알림이 정상 작동합니다!',icon:'./icon-192.png'}),800);
+    } else {
+      if(el){el.textContent='❌ 알림 권한 거부됨';el.style.color='var(--danger)'}
+    }
+  });
+}
+
+// ══ 계정 ══
+let user = JSON.parse(localStorage.getItem('qc_user')||'null');
+function applyUserUI(){
+  const la=document.getElementById('loginArea'),ua=document.getElementById('userArea');
+  if(user){
+    if(la)la.style.display='none';if(ua)ua.style.display='block';
+    const av=document.getElementById('userAvatar');if(av)av.textContent=user.name[0]?.toUpperCase()||'?';
+    const un=document.getElementById('userName');if(un)un.textContent=user.name;
+    const ue=document.getElementById('userEmail');if(ue)ue.textContent=user.email;
+    const pb=document.getElementById('profileBtn');if(pb)pb.textContent=user.name[0]?.toUpperCase()||'👤';
+  } else {
+    if(la)la.style.display='block';if(ua)ua.style.display='none';
+    const pb=document.getElementById('profileBtn');if(pb)pb.textContent='👤';
+  }
+}
+function validateEmailField(input) {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+  const err = document.getElementById('emailError');
+  if(input.value && !emailRegex.test(input.value.trim())) {
+    input.style.borderColor = 'var(--danger)';
+    if(err) err.style.display = 'block';
+  } else {
+    input.style.borderColor = 'var(--border)';
+    if(err) err.style.display = 'none';
+  }
+}
+function clearEmailError() {
+  const err = document.getElementById('emailError');
+  if(err) err.style.display = 'none';
+  const input = document.getElementById('loginEmail');
+  if(input) input.style.borderColor = 'var(--border-h)';
+}
+function doLoginSave(){
+  const n = document.getElementById('loginName')?.value.trim();
+  const e = document.getElementById('loginEmail')?.value.trim();
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+  if(!n){ showToastMsg('❌ 이름을 입력해주세요'); document.getElementById('loginName')?.focus(); return; }
+  if(!e){ showToastMsg('❌ 이메일을 입력해주세요'); document.getElementById('loginEmail')?.focus(); return; }
+  if(!emailRegex.test(e)){
+    const err = document.getElementById('emailError');
+    if(err) err.style.display = 'block';
+    const input = document.getElementById('loginEmail');
+    if(input) input.style.borderColor = 'var(--danger)';
+    document.getElementById('loginEmail')?.focus();
+    return;
+  }
+  user = {name:n, email:e};
+  localStorage.setItem('qc_user', JSON.stringify(user));
+  applyUserUI(); showToastMsg('✅ 등록 완료!');
+}
+function doLogin(){ doLoginSave(); }
+function doLogout(){
+  if(!confirm('로그아웃 하시겠습니까?'))return;
+  user=null;localStorage.removeItem('qc_user');applyUserUI();
+}
+
+// ══ 테마 ══
+const COLORS=['#4d8fff','#7c3aed','#db2777','#059669','#d97706','#dc2626'];
+function renderColors(){
+  const acc=localStorage.getItem('qc_accent')||'#4d8fff';
+  document.getElementById('colorRow').innerHTML=COLORS.map(c=>`
+    <div class="color-sw ${c===acc?'active':''}" style="background:${c}"
+         onclick="setAccent('${c}',this)"></div>`).join('');
+}
+function setAccent(c,el){
+  document.documentElement.style.setProperty('--accent',c);
+  const r=parseInt(c.slice(1,3),16),g=parseInt(c.slice(3,5),16),b=parseInt(c.slice(5,7),16);
+  document.documentElement.style.setProperty('--accent2',`rgba(${r},${g},${b},.7)`);
+  document.documentElement.style.setProperty('--glow',`rgba(${r},${g},${b},.15)`);
+  document.documentElement.style.setProperty('--dim',`rgba(${r},${g},${b},.08)`);
+  localStorage.setItem('qc_accent',c);
+  document.querySelectorAll('.color-sw').forEach(s=>s.classList.remove('active'));
+  el.classList.add('active');
+}
+function applyDark(){
+  const dark=document.getElementById('darkCb')?.checked;
+  document.body.style.filter=dark?'':'invert(1) hue-rotate(180deg)';
+}
+
+// ══ PWA 아이콘 ══
+function uploadIcon(input){
+  const f=input.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=e=>{
+    localStorage.setItem('qc_icon',e.target.result);
+    const prev=document.getElementById('iconPreview');
+    if(prev)prev.innerHTML=`<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:12px"/>`;
+    showToastMsg('✅ 아이콘 저장됨. 재설치 시 적용!');
+  };
+  r.readAsDataURL(f);
+}
+function loadSavedIcon(){
+  const s=localStorage.getItem('qc_icon');
+  const prev=document.getElementById('iconPreview');
+  if(s&&prev)prev.innerHTML=`<img src="${s}" style="width:100%;height:100%;object-fit:cover;border-radius:12px"/>`;
+}
+
+// ══ 데이터 초기화 ══
+function clearData(){
+  if(!confirm('정말로 모든 데이터를 삭제하시겠습니까?'))return;
+  data=[]; save(); renderRun(); renderEdit();
+  showToastMsg('🗑 초기화 완료');
+}
+
+// ══ 유틸 ══
+function escH(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function escA(s){return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,'\\n')}
+
+// ══ 스플래시 ══
+function hideSplash(){
+  // 퍼센트 카운터
+  const pct = document.getElementById('spPct');
+  let n = 0;
+  const tick = setInterval(() => {
+    n = Math.min(100, n + Math.floor(Math.random() * 8) + 3);
+    if(pct) pct.textContent = n + '%';
+    if(n >= 100) clearInterval(tick);
+  }, 80);
+
+  setTimeout(()=>{
+    const s=document.getElementById('splash');
+    if(s){s.classList.add('hide');setTimeout(()=>s.remove(),900)}
+  },2200);
+}
+
+// ══ 강조색 복원 ══
+function restoreAccent(){
+  const c=localStorage.getItem('qc_accent');
+  if(c){
+    document.documentElement.style.setProperty('--accent',c);
+    const r=parseInt(c.slice(1,3),16),g=parseInt(c.slice(3,5),16),b=parseInt(c.slice(5,7),16);
+    document.documentElement.style.setProperty('--accent2',`rgba(${r},${g},${b},.7)`);
+    document.documentElement.style.setProperty('--glow',`rgba(${r},${g},${b},.15)`);
+    document.documentElement.style.setProperty('--dim',`rgba(${r},${g},${b},.08)`);
+  }
+}
+
+// ══ 시작 ══
+window.onload=()=>{
+  hideSplash();
+  restoreAccent();
+  applyLang();
+  startClock();
+  loadWeather();
+  applyUserUI();
+  renderRun();
+  renderColors();
+  loadSavedIcon();
+};
+</script>
+</body>
+</html>
