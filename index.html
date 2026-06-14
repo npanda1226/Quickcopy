@@ -40,6 +40,7 @@
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{height:100%}
+
 body{
   font-family:var(--fb);background:var(--bg);color:var(--text);
   min-height:100vh;display:flex;flex-direction:column;
@@ -301,6 +302,44 @@ header{
 .phrase-card.copied{background:rgba(77,255,166,.05)}
 .phrase-card.copied::before{transform:scaleY(1);background:var(--success)}
 .phrase-card.copied .copy-chip{background:rgba(77,255,166,.1);border-color:rgba(77,255,166,.3);color:var(--success)}
+
+/* 상단 카테고리 탭바 */
+.cat-tab-bar{
+  display:flex; gap:6px; margin-bottom:14px;
+  overflow-x:auto; scrollbar-width:none; padding-bottom:2px;
+}
+.cat-tab-bar::-webkit-scrollbar{display:none}
+.cat-tab-item{
+  flex-shrink:0; display:flex; align-items:center; gap:6px;
+  padding:7px 14px; border-radius:10px;
+  border:1px solid var(--border); background:var(--surface);
+  color:var(--text2); font-family:'Outfit',sans-serif; font-size:.82rem; font-weight:500;
+  cursor:pointer; transition:all var(--tr); white-space:nowrap;
+}
+.cat-tab-item:hover{border-color:var(--border-h)}
+.cat-tab-item.active{
+  background:linear-gradient(135deg,#1a3a7a,#2a5abf);
+  border-color:var(--border-h); color:#fff;
+  box-shadow:0 2px 10px rgba(77,143,255,.25);
+}
+.cat-tab-item .tab-edit-x{
+  font-size:.65rem; opacity:.5; cursor:pointer; padding:2px;
+  border-radius:4px; transition:all var(--tr);
+}
+.cat-tab-item .tab-edit-x:hover{opacity:1; background:rgba(0,0,0,.2)}
+.cat-tab-add{
+  flex-shrink:0; width:32px; height:32px; border-radius:10px;
+  border:1px dashed var(--border); background:transparent;
+  color:var(--muted); cursor:pointer; font-size:1rem;
+  display:flex; align-items:center; justify-content:center;
+  transition:all var(--tr);
+}
+.cat-tab-add:hover{border-color:var(--accent); color:var(--accent); background:var(--dim)}
+.cat-tab-rename{
+  background:transparent; border:none; border-bottom:1px solid rgba(255,255,255,.5);
+  color:#fff; font-family:'Outfit',sans-serif; font-size:.82rem; font-weight:500;
+  outline:none; width:80px; padding:0;
+}
 
 /* 설정모드 카드 */
 .phrase-card.em{cursor:default}
@@ -628,13 +667,14 @@ header{
 
 <!-- 실행 탭 -->
 <div class="tab-panel" id="tab-run">
-  <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
     <button onclick="showHome()" style="width:32px;height:32px;border-radius:9px;
       border:1px solid var(--border);background:transparent;color:var(--text2);
       cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center">‹</button>
     <div style="font-family:'Raleway',sans-serif;font-size:.7rem;font-weight:800;
       letter-spacing:4px;text-transform:uppercase;color:var(--accent2)">RUN MODE</div>
   </div>
+  <div class="cat-tab-bar" id="runTabBar"></div>
   <div class="search-wrap">
     <span class="search-ico">🔍</span>
     <input class="search-input" type="text" id="searchInput"
@@ -646,13 +686,14 @@ header{
 
 <!-- 설정(편집) 탭 -->
 <div class="tab-panel" id="tab-edit">
-  <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
     <button onclick="showHome()" style="width:32px;height:32px;border-radius:9px;
       border:1px solid var(--border);background:transparent;color:var(--text2);
       cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center">‹</button>
     <div style="font-family:'Raleway',sans-serif;font-size:.7rem;font-weight:800;
       letter-spacing:4px;text-transform:uppercase;color:var(--text2)">EDIT MODE</div>
   </div>
+  <div class="cat-tab-bar" id="editTabBar"></div>
   <div id="editContent"></div>
 </div>
 
@@ -855,11 +896,28 @@ function setSplashLang(l, btn) {
 
 // ══ 데이터 ══
 let data = JSON.parse(localStorage.getItem('qc_data') || 'null') || [
-  { id:1, name:'인사',  open:true,  phrases:[{id:11,text:'안녕하세요! 반갑습니다 😊'},{id:12,text:'잘 부탁드립니다.'}] },
-  { id:2, name:'업무',  open:false, phrases:[{id:21,text:'확인 후 회신드리겠습니다.'},{id:22,text:'감사합니다. 수고하셨습니다!'}] },
+  { id:1, name:'인사',  open:true,  tabId:1, phrases:[{id:11,text:'안녕하세요! 반갑습니다 😊'},{id:12,text:'잘 부탁드립니다.'}] },
+  { id:2, name:'업무',  open:false, tabId:1, phrases:[{id:21,text:'확인 후 회신드리겠습니다.'},{id:22,text:'감사합니다. 수고하셨습니다!'}] },
 ];
+let tabs = JSON.parse(localStorage.getItem('qc_tabs') || 'null') || [
+  { id:1, name:'전체' }
+];
+let activeTabId = JSON.parse(localStorage.getItem('qc_activeTab') || 'null') || tabs[0]?.id || 1;
 let nextId = 300;
+let nextTabId = 100;
+
+// 기존 데이터 마이그레이션: tabId 없는 카테고리는 첫 탭에 배정
+(function migrate(){
+  let changed = false;
+  data.forEach(cat => { if(cat.tabId === undefined) { cat.tabId = tabs[0]?.id || 1; changed = true; } });
+  if(changed) save();
+})();
+
 function save() { localStorage.setItem('qc_data', JSON.stringify(data)); }
+function saveTabs() {
+  localStorage.setItem('qc_tabs', JSON.stringify(tabs));
+  localStorage.setItem('qc_activeTab', JSON.stringify(activeTabId));
+}
 
 // ══ 홈 / 모드 전환 ══
 function showHome() {
@@ -888,12 +946,15 @@ function switchTab(id) {
 
 // ══ 렌더: 실행 ══
 function renderRun() {
+  renderCatTabBar('runTabBar');
   const q    = document.getElementById('searchInput')?.value.toLowerCase() || '';
   const cnt  = document.getElementById('searchCnt');
   const root = document.getElementById('runContent');
   if(!root) return;
 
-  const filtered = data.map(cat => ({
+  const tabCats = data.filter(c => c.tabId === activeTabId);
+
+  const filtered = tabCats.map(cat => ({
     ...cat,
     phrases: cat.phrases.filter(p => !q || p.text.toLowerCase().includes(q))
   })).filter(cat => cat.phrases.length || !q);
@@ -901,8 +962,8 @@ function renderRun() {
   const total = filtered.reduce((s,c) => s+c.phrases.length, 0);
   if(cnt) cnt.textContent = q ? `${total}개` : '';
 
-  if(!data.length) {
-    root.innerHTML = `<div class="empty"><div class="empty-ico">📋</div><h3>카테고리가 없습니다</h3><p>설정 탭에서 추가해보세요</p></div>`;
+  if(!tabCats.length) {
+    root.innerHTML = `<div class="empty"><div class="empty-ico">📋</div><h3>카테고리가 없습니다</h3><p>편집 모드에서 이 탭에 카테고리를 추가해보세요</p></div>`;
     return;
   }
   if(q && !total) {
@@ -937,11 +998,102 @@ function toggleCat(id) {
   if(block) block.classList.toggle('open');
 }
 
+// ══ 인라인 확인창 ══
+function showConfirm({icon,title,desc,okText='확인',danger=false,onOk}) {
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeSlide .15s ease';
+  overlay.innerHTML = `
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:18px;padding:26px 22px;max-width:320px;width:100%;text-align:center">
+      <div style="font-size:1.8rem;margin-bottom:10px">${icon}</div>
+      <div style="font-family:'Raleway',sans-serif;font-weight:800;font-size:1rem;margin-bottom:6px">${escH(title)}</div>
+      <div style="font-size:.82rem;color:var(--text2);margin-bottom:18px;line-height:1.5">${escH(desc)}</div>
+      <div style="display:flex;gap:8px">
+        <button id="cfCancel" style="flex:1;padding:10px;border-radius:9px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;font-size:.85rem">취소</button>
+        <button id="cfOk" style="flex:1;padding:10px;border-radius:9px;border:none;background:${danger?'var(--danger)':'linear-gradient(135deg,#1a3a7a,#2a5abf)'};color:#fff;font-weight:700;cursor:pointer;font-size:.85rem">${escH(okText)}</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  overlay.querySelector('#cfCancel').onclick = () => overlay.remove();
+  overlay.querySelector('#cfOk').onclick = () => { overlay.remove(); onOk(); };
+  overlay.onclick = e => { if(e.target===overlay) overlay.remove(); };
+}
+
+// ══ 상단 카테고리 탭 ══
+function renderCatTabBar(barId) {
+  const bar = document.getElementById(barId);
+  if(!bar) return;
+
+  // activeTabId가 유효한지 확인, 없으면 첫 탭으로
+  if(!tabs.find(t => t.id === activeTabId)) {
+    activeTabId = tabs[0]?.id;
+    saveTabs();
+  }
+
+  bar.innerHTML = tabs.map(t => `
+    <div class="cat-tab-item ${t.id===activeTabId?'active':''}" id="cattab-${barId}-${t.id}">
+      <span onclick="selectCatTab(${t.id})">${escH(t.name)}</span>
+      ${tabs.length>1 ? `<span class="tab-edit-x" onclick="event.stopPropagation();startRenameTab(${t.id},'${barId}')" title="이름 변경">✏</span>
+      <span class="tab-edit-x" onclick="event.stopPropagation();deleteCatTab(${t.id})" title="삭제">✕</span>` : ''}
+    </div>
+  `).join('') + `<button class="cat-tab-add" onclick="addCatTab()" title="새 탭">＋</button>`;
+}
+
+function selectCatTab(id) {
+  activeTabId = id; saveTabs();
+  renderRun(); renderEdit();
+}
+
+function addCatTab() {
+  const name = `탭 ${tabs.length+1}`;
+  const t = { id:++nextTabId, name };
+  tabs.push(t); activeTabId = t.id; saveTabs();
+  renderRun(); renderEdit();
+}
+
+function startRenameTab(id, barId) {
+  const t = tabs.find(t=>t.id===id); if(!t) return;
+  const el = document.getElementById(`cattab-${barId}-${id}`);
+  if(!el) return;
+  el.innerHTML = `
+    <input class="cat-tab-rename" value="${escH(t.name)}" id="tabRename-${id}"
+      onkeydown="if(event.key==='Enter')saveTabRename(${id});if(event.key==='Escape'){renderRun();renderEdit();}"/>
+    <span class="tab-edit-x" onclick="event.stopPropagation();saveTabRename(${id})" title="저장">✓</span>`;
+  setTimeout(()=>{ const i=document.getElementById('tabRename-'+id); if(i){i.focus();i.select();} },30);
+}
+function saveTabRename(id) {
+  const input = document.getElementById('tabRename-'+id);
+  const n = input?.value.trim();
+  const t = tabs.find(t=>t.id===id);
+  if(t && n) t.name = n;
+  saveTabs(); renderRun(); renderEdit();
+}
+
+function deleteCatTab(id) {
+  if(tabs.length <= 1) { showToastMsg('최소 1개의 탭이 필요합니다'); return; }
+  const t = tabs.find(t=>t.id===id); if(!t) return;
+  const catCount = data.filter(c=>c.tabId===id).length;
+  showConfirm({
+    icon:'🗑', title:`"${t.name}" 탭 삭제`,
+    desc: catCount>0
+      ? `이 탭의 카테고리 ${catCount}개와 모든 문장이 함께 삭제됩니다.`
+      : '이 탭을 삭제하시겠습니까?',
+    okText:'삭제', danger:true,
+    onOk: () => {
+      data = data.filter(c=>c.tabId!==id);
+      tabs = tabs.filter(t=>t.id!==id);
+      if(activeTabId===id) activeTabId = tabs[0]?.id;
+      save(); saveTabs(); renderRun(); renderEdit();
+    }
+  });
+}
+
 // ══ 렌더: 편집 ══
 function renderEdit() {
+  renderCatTabBar('editTabBar');
   const root = document.getElementById('editContent');
   if(!root) return;
-  let html = data.map(cat => `
+  const tabCats = data.filter(c => c.tabId === activeTabId);
+  let html = tabCats.map(cat => `
     <div class="cat-block open" id="e-cat-${cat.id}">
       <div class="cat-header" id="cat-hdr-${cat.id}">
         <div class="cat-header-left">
@@ -999,7 +1151,7 @@ function addCatSave() {
   const input = document.getElementById('newCatInput');
   const n = input?.value.trim();
   if(!n) { input?.focus(); return; }
-  data.push({id:++nextId, name:n, open:true, phrases:[]});
+  data.push({id:++nextId, name:n, open:true, tabId:activeTabId, phrases:[]});
   save(); renderEdit();
 }
 function cancelAddCat() {
