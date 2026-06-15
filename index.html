@@ -615,7 +615,7 @@ header{
 <!-- ── 홈: 실행 / 설정 큰 버튼 ── -->
 <div id="homeScreen" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 20px;gap:16px;max-width:500px;margin:0 auto;width:100%">
   <div style="font-family:'Raleway',sans-serif;font-size:.62rem;font-weight:700;
-    letter-spacing:5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">
+    letter-spacing:5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px" class="t" data-k="modeSelect">
     MODE SELECT
   </div>
   <!-- 실행 버튼 -->
@@ -631,7 +631,7 @@ header{
     <div style="flex:1">
       <div style="font-family:'Raleway',sans-serif;font-size:1.3rem;font-weight:800;
         color:#fff;letter-spacing:1px;margin-bottom:4px" class="t" data-k="run">실행 모드</div>
-      <div style="font-size:.78rem;color:var(--text2);font-family:'Outfit',sans-serif;font-weight:300">
+      <div style="font-size:.78rem;color:var(--text2);font-family:'Outfit',sans-serif;font-weight:300" class="t" data-k="runDesc">
         저장된 문장을 클릭해 즉시 복사
       </div>
     </div>
@@ -650,7 +650,7 @@ header{
     <div style="flex:1">
       <div style="font-family:'Raleway',sans-serif;font-size:1.3rem;font-weight:800;
         color:var(--text);letter-spacing:1px;margin-bottom:4px" class="t" data-k="edit">편집 모드</div>
-      <div style="font-size:.78rem;color:var(--muted);font-family:'Outfit',sans-serif;font-weight:300">
+      <div style="font-size:.78rem;color:var(--muted);font-family:'Outfit',sans-serif;font-weight:300" class="t" data-k="editDesc">
         카테고리와 문장 추가·수정·삭제
       </div>
     </div>
@@ -716,7 +716,7 @@ header{
         <div class="weather-ico" id="wIcon">⏳</div>
         <div>
           <div class="weather-temp" id="wTemp">--°</div>
-          <div class="weather-desc" id="wDesc">위치 확인 중...</div>
+          <div class="weather-desc" id="wDesc" data-state="locating">위치 확인 중...</div>
         </div>
       </div>
       <div class="weather-city" id="wCity"></div>
@@ -856,7 +856,23 @@ const I18N = {
        accentColor:'강조색',appIcon:'앱 아이콘',pwaIcon:'Chrome 설치 아이콘',
        pwaIconDesc:'재설치 시 적용됩니다',data:'데이터',
        clearData:'전체 데이터 초기화',clearDataDesc:'모든 카테고리와 문장을 삭제합니다',
-       copied:'복사됨',clock:'시계',weather:'날씨' },
+       copied:'복사됨',clock:'시계',weather:'날씨',
+       modeSelect:'모드 선택', runDesc:'저장된 문장을 클릭해 즉시 복사',
+       editDesc:'카테고리와 문장 추가·수정·삭제',
+       searchPlaceholder:'문장 검색...', locating:'위치 확인 중...',
+       noCategoryTitle:'카테고리가 없습니다', noCategoryDesc:'편집 모드에서 이 탭에 카테고리를 추가해보세요',
+       noResultTitle:'검색 결과 없음', noResultDesc:'에 해당하는 문장이 없어요',
+       phraseInputPlaceholder:'문장 입력 (Enter 저장)',
+       folderPickTitle:'폴더에 담을 카테고리',
+       noFolderTitle:'폴더가 없습니다', noFolderDesc:'새 폴더를 만들어보세요',
+       items:'개', save:'저장', cancel:'취소', add:'추가', confirm:'확인',
+       copyLabel:'복사', copiedLabel:'복사됨 ✓',
+       addPhraseBtn:'＋ 문장 추가', addCatBtn:'＋ 카테고리 추가',
+       renameTitle:'이름 변경', deleteTitle:'삭제',
+       minOneTab:'최소 1개의 탭이 필요합니다',
+       deleteTabTitle:'탭 삭제', deleteTabDescWithCat:'이 탭의 카테고리 {n}개와 모든 문장이 함께 삭제됩니다.',
+       deleteTabDesc:'이 탭을 삭제하시겠습니까?', delete:'삭제',
+       confirmDeleteCat:'삭제할까요?' },
   en:{ run:'Run',edit:'Edit',widget:'Widget',folder:'Folder',settings:'Account',
        pushTitle:'Push Notifications',pushDesc:'Get reminders',enable:'Enable',
        newFolder:'New Folder',account:'Account',loginBtn:'Set Name / Email',logout:'Logout',
@@ -864,7 +880,23 @@ const I18N = {
        accentColor:'Accent Color',appIcon:'App Icon',pwaIcon:'Chrome Install Icon',
        pwaIconDesc:'Applied after reinstall',data:'Data',
        clearData:'Clear All Data',clearDataDesc:'Delete all categories and phrases',
-       copied:'Copied',clock:'Clock',weather:'Weather' },
+       copied:'Copied',clock:'Clock',weather:'Weather',
+       modeSelect:'Mode Select', runDesc:'Click a saved phrase to copy instantly',
+       editDesc:'Add, edit, and delete categories & phrases',
+       searchPlaceholder:'Search phrases...', locating:'Locating...',
+       noCategoryTitle:'No categories yet', noCategoryDesc:'Add a category to this tab in edit mode',
+       noResultTitle:'No results found', noResultDesc:'No phrases match',
+       phraseInputPlaceholder:'Type a phrase (Enter to save)',
+       folderPickTitle:'Categories for this folder',
+       noFolderTitle:'No folders yet', noFolderDesc:'Create a new folder',
+       items:'', save:'Save', cancel:'Cancel', add:'Add', confirm:'Confirm',
+       copyLabel:'Copy', copiedLabel:'Copied ✓',
+       addPhraseBtn:'＋ Add Phrase', addCatBtn:'＋ Add Category',
+       renameTitle:'Rename', deleteTitle:'Delete',
+       minOneTab:'At least 1 tab is required',
+       deleteTabTitle:'Delete Tab', deleteTabDescWithCat:'{n} categories and all phrases in this tab will also be deleted.',
+       deleteTabDesc:'Delete this tab?', delete:'Delete',
+       confirmDeleteCat:'Delete this?' },
   ja:{ run:'実行',edit:'設定',widget:'ウィジェット',folder:'フォルダ',settings:'アカウント',
        pushTitle:'プッシュ通知',pushDesc:'リマインダーを受け取る',enable:'有効化',
        newFolder:'新しいフォルダ',account:'アカウント',loginBtn:'名前 / メール設定',logout:'ログアウト',
@@ -872,7 +904,23 @@ const I18N = {
        accentColor:'アクセントカラー',appIcon:'アプリアイコン',pwaIcon:'Chromeインストールアイコン',
        pwaIconDesc:'再インストール後に適用',data:'データ',
        clearData:'全データ初期化',clearDataDesc:'全カテゴリと文章を削除',
-       copied:'コピー済み',clock:'時計',weather:'天気' },
+       copied:'コピー済み',clock:'時計',weather:'天気',
+       modeSelect:'モード選択', runDesc:'保存した文章をクリックしてコピー',
+       editDesc:'カテゴリと文章を追加・編集・削除',
+       searchPlaceholder:'文章を検索...', locating:'位置情報を取得中...',
+       noCategoryTitle:'カテゴリがありません', noCategoryDesc:'編集モードでこのタブにカテゴリを追加してください',
+       noResultTitle:'検索結果なし', noResultDesc:'に該当する文章がありません',
+       phraseInputPlaceholder:'文章を入力 (Enterで保存)',
+       folderPickTitle:'フォルダに入れるカテゴリ',
+       noFolderTitle:'フォルダがありません', noFolderDesc:'新しいフォルダを作成してください',
+       items:'', save:'保存', cancel:'キャンセル', add:'追加', confirm:'確認',
+       copyLabel:'コピー', copiedLabel:'コピー済み ✓',
+       addPhraseBtn:'＋ 文章を追加', addCatBtn:'＋ カテゴリを追加',
+       renameTitle:'名前変更', deleteTitle:'削除',
+       minOneTab:'最低1つのタブが必要です',
+       deleteTabTitle:'タブを削除', deleteTabDescWithCat:'このタブのカテゴリ{n}個とすべての文章も削除されます。',
+       deleteTabDesc:'このタブを削除しますか？', delete:'削除',
+       confirmDeleteCat:'削除しますか？' },
 };
 let lang = localStorage.getItem('qc_lang') || 'ko';
 
@@ -881,6 +929,15 @@ function applyLang() {
   document.querySelectorAll('.t[data-k]').forEach(el => { if(t[el.dataset.k]) el.textContent = t[el.dataset.k]; });
   const wlc = document.getElementById('wLabelClock'); if(wlc) wlc.textContent = t.clock;
   const wlw = document.getElementById('wLabelWeather'); if(wlw) wlw.textContent = t.weather;
+  const si = document.getElementById('searchInput'); if(si) si.placeholder = t.searchPlaceholder;
+  const wd = document.getElementById('wDesc'); if(wd && wd.dataset.state==='locating') wd.textContent = t.locating;
+  // 언어 버튼 active 상태 동기화
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.getAttribute('onclick')?.includes(`'${lang}'`)));
+  document.querySelectorAll('.sp-lang-btn').forEach(b => b.classList.toggle('active', b.getAttribute('onclick')?.includes(`'${lang}'`)));
+  // 현재 화면 다시 렌더 (동적 텍스트 갱신)
+  if(document.getElementById('tab-run')?.classList.contains('active'))    renderRun();
+  if(document.getElementById('tab-edit')?.classList.contains('active'))   renderEdit();
+  if(document.getElementById('tab-folder')?.classList.contains('active')) renderFolders();
 }
 function setLang(l, btn) {
   lang = l; localStorage.setItem('qc_lang', l);
@@ -892,6 +949,7 @@ function setSplashLang(l, btn) {
   lang = l; localStorage.setItem('qc_lang', l);
   document.querySelectorAll('.sp-lang-btn').forEach(b => b.classList.remove('active'));
   if(btn) btn.classList.add('active');
+  applyLang();
 }
 
 // ══ 데이터 ══
@@ -947,6 +1005,7 @@ function switchTab(id) {
 // ══ 렌더: 실행 ══
 function renderRun() {
   renderCatTabBar('runTabBar');
+  const t    = I18N[lang] || I18N.ko;
   const q    = document.getElementById('searchInput')?.value.toLowerCase() || '';
   const cnt  = document.getElementById('searchCnt');
   const root = document.getElementById('runContent');
@@ -960,14 +1019,14 @@ function renderRun() {
   })).filter(cat => cat.phrases.length || !q);
 
   const total = filtered.reduce((s,c) => s+c.phrases.length, 0);
-  if(cnt) cnt.textContent = q ? `${total}개` : '';
+  if(cnt) cnt.textContent = q ? `${total}${t.items}` : '';
 
   if(!tabCats.length) {
-    root.innerHTML = `<div class="empty"><div class="empty-ico">📋</div><h3>카테고리가 없습니다</h3><p>편집 모드에서 이 탭에 카테고리를 추가해보세요</p></div>`;
+    root.innerHTML = `<div class="empty"><div class="empty-ico">📋</div><h3>${t.noCategoryTitle}</h3><p>${t.noCategoryDesc}</p></div>`;
     return;
   }
   if(q && !total) {
-    root.innerHTML = `<div class="empty"><div class="empty-ico">🔍</div><h3>검색 결과 없음</h3><p>"${escH(q)}"에 해당하는 문장이 없어요</p></div>`;
+    root.innerHTML = `<div class="empty"><div class="empty-ico">🔍</div><h3>${t.noResultTitle}</h3><p>"${escH(q)}"${t.noResultDesc}</p></div>`;
     return;
   }
 
@@ -984,7 +1043,7 @@ function renderRun() {
         ${cat.phrases.filter(p=>!q||p.text.toLowerCase().includes(q)).map(p=>`
           <div class="phrase-card" id="rc-${p.id}" onclick="copyPhrase('${escA(p.text)}',${p.id})">
             <div class="phrase-text">${escH(p.text)}</div>
-            <div class="copy-chip">복사</div>
+            <div class="copy-chip">${t.copyLabel||'복사'}</div>
           </div>`).join('')}
       </div>
     </div>
@@ -1069,15 +1128,16 @@ function saveTabRename(id) {
 }
 
 function deleteCatTab(id) {
-  if(tabs.length <= 1) { showToastMsg('최소 1개의 탭이 필요합니다'); return; }
-  const t = tabs.find(t=>t.id===id); if(!t) return;
+  const t = I18N[lang] || I18N.ko;
+  if(tabs.length <= 1) { showToastMsg(t.minOneTab); return; }
+  const tab = tabs.find(t=>t.id===id); if(!tab) return;
   const catCount = data.filter(c=>c.tabId===id).length;
   showConfirm({
-    icon:'🗑', title:`"${t.name}" 탭 삭제`,
+    icon:'🗑', title:`"${tab.name}" ${t.deleteTabTitle}`,
     desc: catCount>0
-      ? `이 탭의 카테고리 ${catCount}개와 모든 문장이 함께 삭제됩니다.`
-      : '이 탭을 삭제하시겠습니까?',
-    okText:'삭제', danger:true,
+      ? t.deleteTabDescWithCat.replace('{n}', catCount)
+      : t.deleteTabDesc,
+    okText:t.delete, danger:true,
     onOk: () => {
       data = data.filter(c=>c.tabId!==id);
       tabs = tabs.filter(t=>t.id!==id);
@@ -1090,6 +1150,7 @@ function deleteCatTab(id) {
 // ══ 렌더: 편집 ══
 function renderEdit() {
   renderCatTabBar('editTabBar');
+  const t = I18N[lang] || I18N.ko;
   const root = document.getElementById('editContent');
   if(!root) return;
   const tabCats = data.filter(c => c.tabId === activeTabId);
@@ -1102,8 +1163,8 @@ function renderEdit() {
           <span class="cat-cnt">${cat.phrases.length}</span>
         </div>
         <div class="cat-actions">
-          <button class="icon-btn" onclick="startRenameInline(${cat.id})" title="이름 변경">✏</button>
-          <button class="icon-btn d" onclick="deleteCat(${cat.id})" title="삭제">🗑</button>
+          <button class="icon-btn" onclick="startRenameInline(${cat.id})" title="${t.renameTitle}">✏</button>
+          <button class="icon-btn d" onclick="deleteCat(${cat.id})" title="${t.deleteTitle}">🗑</button>
         </div>
       </div>
       <div class="phrase-list" style="display:flex">
@@ -1116,13 +1177,13 @@ function renderEdit() {
             </div>
           </div>`).join('')}
         <div id="ei-${cat.id}"></div>
-        <button class="add-phrase-btn" onclick="showAdd(${cat.id})">＋ 문장 추가</button>
+        <button class="add-phrase-btn" onclick="showAdd(${cat.id})">${t.addPhraseBtn}</button>
       </div>
     </div>
   `).join('');
   html += `
     <div id="add-cat-area">
-      <button class="add-cat-btn" onclick="showAddCat()">＋ 카테고리 추가</button>
+      <button class="add-cat-btn" onclick="showAddCat()">${t.addCatBtn}</button>
     </div>`;
   root.innerHTML = html;
 }
@@ -1156,7 +1217,7 @@ function addCatSave() {
 }
 function cancelAddCat() {
   const area = document.getElementById('add-cat-area');
-  if(area) area.innerHTML = `<button class="add-cat-btn" onclick="showAddCat()">＋ 카테고리 추가</button>`;
+  if(area) area.innerHTML = `<button class="add-cat-btn" onclick="showAddCat()">${(I18N[lang]||I18N.ko).addCatBtn}</button>`;
 }
 
 // 카테고리 이름 변경 — 인라인
@@ -1241,13 +1302,14 @@ function cancelDelCat(id) {
 
 // ══ 문장 CRUD ══
 function showAdd(catId) {
+  const t = I18N[lang] || I18N.ko;
   const wrap = document.getElementById('ei-'+catId); if(!wrap) return;
   if(wrap.innerHTML){wrap.innerHTML='';return}
   wrap.innerHTML = `
     <div class="inline-wrap">
-      <textarea class="inline-ta" id="ta-${catId}" placeholder="문장 입력 (Enter 저장)" rows="2"
+      <textarea class="inline-ta" id="ta-${catId}" placeholder="${t.phraseInputPlaceholder}" rows="2"
         onkeydown="taKey(event,${catId})"></textarea>
-      <button class="btn-save"   onclick="savePhr(${catId})">저장</button>
+      <button class="btn-save"   onclick="savePhr(${catId})">${t.save}</button>
       <button class="btn-cancel" onclick="cancelAdd(${catId})">✕</button>
     </div>`;
   setTimeout(()=>document.getElementById('ta-'+catId)?.focus(),50);
@@ -1305,14 +1367,15 @@ function copyPhrase(text, id) {
     .catch(()=>{const ta=document.createElement('textarea');ta.value=decoded;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);fb(id)});
 }
 function fb(id) {
+  const t = I18N[lang] || I18N.ko;
   const card = document.getElementById('rc-'+id);
   if(card){
     card.classList.add('copied');
-    const chip=card.querySelector('.copy-chip');if(chip)chip.textContent='복사됨 ✓';
-    setTimeout(()=>{card.classList.remove('copied');if(chip)chip.textContent='복사'},1300);
+    const chip=card.querySelector('.copy-chip');if(chip)chip.textContent=(t.copiedLabel||'복사됨 ✓');
+    setTimeout(()=>{card.classList.remove('copied');if(chip)chip.textContent=(t.copyLabel||'복사')},1300);
   }
-  const t=document.getElementById('toast');t.classList.add('show');
-  clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),1400);
+  const toastEl=document.getElementById('toast');toastEl.classList.add('show');
+  clearTimeout(toastT);toastT=setTimeout(()=>toastEl.classList.remove('show'),1400);
 }
 
 // ══ 폴더 ══
@@ -1419,7 +1482,7 @@ function loadWeather(){
 }
 function setWIcon(v){const e=document.getElementById('wIcon');if(e)e.textContent=v}
 function setWTemp(v){const e=document.getElementById('wTemp');if(e)e.textContent=v}
-function setWDesc(v){const e=document.getElementById('wDesc');if(e)e.textContent=v}
+function setWDesc(v){const e=document.getElementById('wDesc');if(e){e.textContent=v;delete e.dataset.state}}
 
 // ══ 푸시 ══
 function requestPush(){
