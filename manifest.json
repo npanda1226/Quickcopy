@@ -1,13 +1,13 @@
 {
-  "name": "QuickCopy",
-  "short_name": "QuickCopy",
-  "description": "원클릭 클립보드 매니저 — 카테고리별 문장 관리",
+  "name": "MY APPS",
+  "short_name": "MY APPS",
+  "description": "나만의 앱 런처 — 자주 쓰는 앱을 한 화면에서",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#0d0d0d",
-  "theme_color": "#c8ff00",
+  "background_color": "#0a0a0f",
+  "theme_color": "#6C63FF",
   "lang": "ko",
   "icons": [
     {
@@ -20,7 +20,15 @@
       "src": "icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
-  ]
+  ],
+  "screenshots": [],
+  "categories": ["productivity", "utilities"]
 }
