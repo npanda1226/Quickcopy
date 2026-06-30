@@ -305,17 +305,18 @@ header{
 
 /* 상단 카테고리 탭바 */
 .cat-tab-bar{
-  display:flex; gap:6px; margin-bottom:14px;
-  overflow-x:auto; scrollbar-width:none; padding-bottom:2px;
+  display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px;
+  width:100%; max-width:100%;
 }
-.cat-tab-bar::-webkit-scrollbar{display:none}
 .cat-tab-item{
-  flex-shrink:0; display:flex; align-items:center; gap:6px;
+  flex-shrink:0; max-width:160px; display:flex; align-items:center; gap:6px;
   padding:7px 14px; border-radius:10px;
   border:1px solid var(--border); background:var(--surface);
   color:var(--text2); font-family:'Outfit',sans-serif; font-size:.82rem; font-weight:500;
   cursor:pointer; transition:all var(--tr); white-space:nowrap;
+  overflow:hidden; text-overflow:ellipsis;
 }
+.cat-tab-item span:first-child{overflow:hidden;text-overflow:ellipsis;max-width:110px}
 .cat-tab-item:hover{border-color:var(--border-h)}
 .cat-tab-item.active{
   background:linear-gradient(135deg,#1a3a7a,#2a5abf);
@@ -324,7 +325,7 @@ header{
 }
 .cat-tab-item .tab-edit-x{
   font-size:.65rem; opacity:.5; cursor:pointer; padding:2px;
-  border-radius:4px; transition:all var(--tr);
+  border-radius:4px; transition:all var(--tr); flex-shrink:0;
 }
 .cat-tab-item .tab-edit-x:hover{opacity:1; background:rgba(0,0,0,.2)}
 .cat-tab-add{
@@ -338,7 +339,7 @@ header{
 .cat-tab-rename{
   background:transparent; border:none; border-bottom:1px solid rgba(255,255,255,.5);
   color:#fff; font-family:'Outfit',sans-serif; font-size:.82rem; font-weight:500;
-  outline:none; width:80px; padding:0;
+  outline:none; width:80px; padding:0; max-width:80px;
 }
 
 /* 설정모드 카드 */
