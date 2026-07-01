@@ -1083,17 +1083,16 @@ function renderCatTabBar(barId) {
   const bar = document.getElementById(barId);
   if(!bar) return;
 
-  // activeTabId가 유효한지 확인, 없으면 첫 탭으로
-  if(!tabs.find(t => t.id === activeTabId)) {
+  if(!tabs.find(tb => tb.id === activeTabId)) {
     activeTabId = tabs[0]?.id;
     saveTabs();
   }
 
-  bar.innerHTML = tabs.map(t => `
-    <div class="cat-tab-item ${t.id===activeTabId?'active':''}" id="cattab-${barId}-${t.id}">
-      <span onclick="selectCatTab(${t.id})">${escH(t.name)}</span>
-      ${tabs.length>1 ? `<span class="tab-edit-x" onclick="event.stopPropagation();startRenameTab(${t.id},'${barId}')" title="이름 변경">✏</span>
-      <span class="tab-edit-x" onclick="event.stopPropagation();deleteCatTab(${t.id})" title="삭제">✕</span>` : ''}
+  bar.innerHTML = tabs.map(tb => `
+    <div class="cat-tab-item ${tb.id===activeTabId?'active':''}" id="cattab-${barId}-${tb.id}">
+      <span onclick="selectCatTab(${tb.id})">${escH(tb.name)}</span>
+      ${tabs.length>1 ? `<span class="tab-edit-x" onclick="event.stopPropagation();startRenameTab(${tb.id},'${barId}')" title="이름 변경">✏</span>
+      <span class="tab-edit-x" onclick="event.stopPropagation();deleteCatTab(${tb.id})" title="삭제">✕</span>` : ''}
     </div>
   `).join('') + `<button class="cat-tab-add" onclick="addCatTab()" title="새 탭">＋</button>`;
 }
@@ -1129,19 +1128,19 @@ function saveTabRename(id) {
 }
 
 function deleteCatTab(id) {
-  const t = I18N[lang] || I18N.ko;
-  if(tabs.length <= 1) { showToastMsg(t.minOneTab); return; }
-  const tab = tabs.find(t=>t.id===id); if(!tab) return;
+  const tr = I18N[lang] || I18N.ko;
+  if(tabs.length <= 1) { showToastMsg(tr.minOneTab); return; }
+  const tab = tabs.find(tb=>tb.id===id); if(!tab) return;
   const catCount = data.filter(c=>c.tabId===id).length;
   showConfirm({
-    icon:'🗑', title:`"${tab.name}" ${t.deleteTabTitle}`,
+    icon:'🗑', title:`"${tab.name}" ${tr.deleteTabTitle}`,
     desc: catCount>0
-      ? t.deleteTabDescWithCat.replace('{n}', catCount)
-      : t.deleteTabDesc,
-    okText:t.delete, danger:true,
+      ? tr.deleteTabDescWithCat.replace('{n}', catCount)
+      : tr.deleteTabDesc,
+    okText:tr.delete, danger:true,
     onOk: () => {
       data = data.filter(c=>c.tabId!==id);
-      tabs = tabs.filter(t=>t.id!==id);
+      tabs = tabs.filter(tb=>tb.id!==id);
       if(activeTabId===id) activeTabId = tabs[0]?.id;
       save(); saveTabs(); renderRun(); renderEdit();
     }
