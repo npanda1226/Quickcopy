@@ -1099,14 +1099,16 @@ function renderCatTabBar(barId) {
 
 function selectCatTab(id) {
   activeTabId = id; saveTabs();
-  renderRun(); renderEdit();
+  const runActive = document.getElementById('tab-run')?.classList.contains('active');
+  if(runActive) renderRun(); else renderEdit();
 }
 
 function addCatTab() {
   const name = `탭 ${tabs.length+1}`;
-  const t = { id:++nextTabId, name };
-  tabs.push(t); activeTabId = t.id; saveTabs();
-  renderRun(); renderEdit();
+  const tb = { id:++nextTabId, name };
+  tabs.push(tb); activeTabId = tb.id; saveTabs();
+  const runActive = document.getElementById('tab-run')?.classList.contains('active');
+  if(runActive) renderRun(); else renderEdit();
 }
 
 function startRenameTab(id, barId) {
@@ -1122,9 +1124,11 @@ function startRenameTab(id, barId) {
 function saveTabRename(id) {
   const input = document.getElementById('tabRename-'+id);
   const n = input?.value.trim();
-  const t = tabs.find(t=>t.id===id);
-  if(t && n) t.name = n;
-  saveTabs(); renderRun(); renderEdit();
+  const tb = tabs.find(tb=>tb.id===id);
+  if(tb && n) tb.name = n;
+  saveTabs();
+  const runActive = document.getElementById('tab-run')?.classList.contains('active');
+  if(runActive) renderRun(); else renderEdit();
 }
 
 function deleteCatTab(id) {
@@ -1142,7 +1146,9 @@ function deleteCatTab(id) {
       data = data.filter(c=>c.tabId!==id);
       tabs = tabs.filter(tb=>tb.id!==id);
       if(activeTabId===id) activeTabId = tabs[0]?.id;
-      save(); saveTabs(); renderRun(); renderEdit();
+      save(); saveTabs();
+      const runActive = document.getElementById('tab-run')?.classList.contains('active');
+      if(runActive) renderRun(); else renderEdit();
     }
   });
 }
